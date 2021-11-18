@@ -1,6 +1,7 @@
 <?php
 
 require_once '../../json.php';
+require_once '../../obfuscation.php';
 
 function create_account($email, $pass): string
 {
@@ -68,7 +69,7 @@ function save_story($email, $pass): string
 
     if(isset($save_info['NewGameSave']))
     {
-        $new_data["profile{$_POST["whichProfile"]}"] = ["Nickname" => $save_info['Nickname'], "Color" => $save_info["Color"], "Gender" => $save_info["Gender"]];
+        $new_data["profile{$whichProfile}"] = ["Nickname" => $save_info['Nickname'], "Color" => $save_info["Color"], "Gender" => $save_info["Gender"]];
     }
 
     if(isset($save_info['MapSave']))
