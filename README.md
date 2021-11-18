@@ -1,9 +1,11 @@
 # Goals
-- [ ] Make all game modes playable and beatable
+- [ ] Make Story mode playable
+- [ ] Make 1v1 mode playable
+- [ ] Make Gym Challenges playable
+- [ ] Implement Mystery gifts
+- [ ] Recreate pokecenter
+- [ ] Implement multiplayer (Trainer VS)
 - [ ] Implement MySQL-based saves
-
-# Non-goals
-* Implement anti-cheat
 
 # How to host my own PTD2 server?
 Requirements:
@@ -40,6 +42,6 @@ now just run nginx and php-fpm, and you will have a working PTD2 server on your 
 
 # For developers:
 The code is divided as follows:
-* Things related to save are in json.php, for json saves (use only if your server is not public) and in MySQL.php for SQL saves.
+* Things related to save are in json.php, for json saves (use only as fallback or in non-public servers) and in MySQL.php for SQL saves.
 * Server methods (save/load accounts etc.) are in ptd2_save_12.php
-* Auxiliary functions such as obfuscation of data are in Utils.php
+* Functions to obfuscation and deobfuscation of data are in obfuscation.php
