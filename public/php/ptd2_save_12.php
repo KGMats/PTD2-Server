@@ -98,7 +98,7 @@ function save_story($email, $pass): string
 
     $new_data["profile"]['poke'] = decode_pokeinfo($_POST['extra3']);
     $new_data['inventory'] = decode_inventory($_POST['extra4']);
-    
+
 
     update_account_data($email, $pass, $new_data);
     return 'Result=Success';
@@ -106,12 +106,37 @@ function save_story($email, $pass): string
 
 function load_1v1($email, $pass)
 {
-    return 'Result=Success&extra=wyyyycycmye&extra2=yqym';
+    $account = get_account($email, $pass);
+    if (isset($account['1v1']))
+    {
+        $encoded_data = encode_1v1($account['1v1']);
+        return "Result=Success&extra=$encoded_data&extra2=yqym";
+    }
+    return 'Result=Success&extra=ycm&extra2=yqym';
+}
+
+function save_1v1($email, $pass): string
+{
+    $whichProfile = $_POST['whichProfile'];
+    $new_data['1v1']["profile{$whichProfile}"] = decode_1v1($_POST['extra']);
+    if (update_account_data($email, $pass, $new_data))
+    {
+        return 'Result=Success&Reason=loadedAccount';
+    }
+    return 'Result=Failure&Reason=NotFound';
+}
+
+function delete_1v1(string $email, string $pass): string
+{
+    $whichProfile = $_POST['whichProfile'];
+    delete_profile($email, $pass, '1v1', "profile{$whichProfile}");
+    return 'Result=Success';
 }
 
 
 $email = $_POST['Email'];
 $pass = $_POST['Pass'];
+
 switch ($_POST['Action'])
 {
 case 'createAccount':
@@ -128,6 +153,12 @@ case 'saveStory':
     break;
 case 'load1on1':
     echo load_1v1($email, $pass);
+    break;
+case 'save1on1':
+    echo save_1v1($email, $pass);
+    break;
+case 'delete1on1':
+    echo delete_1v1($email, $pass);
     break;
 }
 ?>
