@@ -44,7 +44,23 @@ function update_account_data($email, $pass, $new_data): bool
     {
         if ($account['email'] === $email && $account['pass'] === $pass)
         {
-            $accounts[$index] = array_merge($accounts[$index], $new_data);
+            $accounts[$index] = array_replace_recursive($accounts[$index], $new_data);
+            $data = json_encode($accounts);
+            file_put_contents('../../accounts.json', $data);
+            return true;
+        }
+    }
+    return false;
+}
+
+function delete_profile($email, $pass, $game_mode, $profile): bool
+{
+    $accounts = get_accounts();
+    foreach ($accounts as $index => $account)
+    {
+        if ($account['email'] === $email && $account['pass'] === $pass)
+        {
+            unset($accounts[$index][$game_mode][$profile]);
             $data = json_encode($accounts);
             file_put_contents('../../accounts.json', $data);
             return true;
