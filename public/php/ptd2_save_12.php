@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/x-www-form-urlencoded');
 
 require_once '../../json.php';
 require_once '../../obfuscation.php';
@@ -10,7 +11,7 @@ function create_account($email, $pass): string
         return 'Result=Failure&Reason=taken';
     }
     $accounts = get_accounts();
-    $account = ['email' => $email, 'pass' => $pass];
+    $account = ['email' => $email, 'pass' => password_hash($pass, PASSWORD_DEFAULT)];
     array_push($accounts, $account);
     $data = json_encode($accounts);
     file_put_contents('../../accounts.json', $data);
@@ -21,7 +22,7 @@ function load_account($email, $pass): string
 {
     if (get_account($email, $pass))
     {
-        return 'Result=Success&Reason=loadedAccount';
+        return 'Result=Success&Reason=loadedAccount&p=1'; // Trainer pass for everyone!
     }
     return 'Result=Failure&Reason=NotFound';
 }
@@ -29,36 +30,63 @@ function load_account($email, $pass): string
 
 function load_story($email, $pass): string
 {
-    # For now this function is not complete, so the game does not recognize
-    # the response as a valid response, softlocking the game on the
-    # "Got a response from server" popup
     $account = get_account($email, $pass);
     $new_account = true;
-    for ($i = 1; $i <= 3; $i++)
+    if ($account)
     {
-        if (array_key_exists("profile{$i}", $account))
+        $result = 'Result=Success&';
+        if (isset($account['story']))
         {
-            $new_account = false;
-            $profile = $account["profile{$i}"];
-            echo "PN{$i}={$profile['Nickname']}&";
-            echo 'extra=ycm&';
-
-            echo 'dw=' . Date('w') . '&';
-
-            echo "dextra1={$profile['pokedex_1']}&";
-            echo "dextra2={$profile['pokedex_2']}&";
-            echo "dextra3={$profile['pokedex_3']}&";
-            echo "dextra4={$profile['pokedex_4']}&";
-            echo "dextra5={$profile['pokedex_5']}&";
-            echo "dextra6={$profile['pokedex_6']}";
+            $result .= 'extra=' . encode_story($account['story']);
+            $result .= '&dw=' . date('w');
+            for ($gen = 1; $gen <= 6; $gen++)
+            {
+                $result .= "&dextra$gen=" . $account['story']["pokedex_$gen"];
+                $result .= "&dcextra$gen=" . convertIntToString(create_Check_Sum($account['story']["pokedex_$gen"]));
+            }
+            for ($i = 1; $i <= 3; $i++)
+            {
+                if (array_key_exists("profile{$i}", $account['story']))
+                {
+                    $profile = $account['story']["profile{$i}"];
+                    $result .= "&Nickname{$i}={$profile['Nickname']}&";
+                    $result .= "Version{$i}={$profile['Color']}";
+                }
+            }
+            return $result;
         }
-    }
-    if ($new_account)
-    {
         return 'Result=Success&extra=ycm';
     }
+    return 'Result=Failure&Reason=NotFound';
 }
 
+function load_story_profile($email, $pass): string
+{
+    $result = '';
+    $account = get_account($email, $pass);
+    if ($account)
+    {
+        $whichProfile = $_POST['whichProfile'];
+        $profile = $account['story']["profile{$whichProfile}"];
+        $encoded_data = encode_story_profile($profile);
+        $result .= "CS={$profile['CurrentSave']}&";
+        $result .= "CT={$profile['CurrentTime']}&";
+        $result .= "Gender={$profile['Gender']}&";
+        $result .= "extra={$encoded_data[0]}&";
+        $result .= "extra2={$encoded_data[1]}&";
+        $result .= "extra3={$encoded_data[2]}&";
+        $result .= "extra4={$encoded_data[3]}&";
+        $result .= "extra5={$encoded_data[4]}";
+        for ($i = 0; $i < count($profile['poke']); $i++)
+        {
+            $num = $i + 1;
+            $result .= "&PN{$num}={$profile['poke'][$i]['Nickname']}";
+        }
+        $result = 'Result=Success&' . $result;
+        return $result;
+    }
+    return 'Result=Failure&Reason=NotFound';
+}
 
 function save_story($email, $pass): string
 {
@@ -69,39 +97,70 @@ function save_story($email, $pass): string
 
     if(isset($save_info['NewGameSave']))
     {
-        $new_data["profile{$whichProfile}"] = ["Nickname" => $save_info['Nickname'], "Color" => $save_info["Color"], "Gender" => $save_info["Gender"]];
+        $new_data['story']["profile{$whichProfile}"] = ['Nickname' => $save_info['Nickname'],
+            'Color' => $save_info["Color"],
+            'Gender' => $save_info["Gender"],
+            'Money' => 10,
+            'CurrentTime' => 100];
     }
 
     if(isset($save_info['MapSave']))
     {
-        $new_data["profile{$whichProfile}"]['MapLoc'] = $save_info['MapLoc'];
-        $new_data["profile{$whichProfile}"]['MapSpot'] = $save_info['MapSpot'];
+        $new_data['story']["profile{$whichProfile}"]['MapLoc'] = $save_info['MapLoc'];
+        $new_data['story']["profile{$whichProfile}"]['MapSpot'] = $save_info['MapSpot'];
     }
 
     if(isset($save_info['MSave']))
     {
-        $new_data["profile{$whichProfile}"]['Money'] = $save_info['MA'];
+        $new_data['story']["profile{$whichProfile}"]['Money'] = convertStringToInt($save_info['MA']);
+    }
+
+    if(isset($save_info['CS']))
+    {
+        $new_data['story']["profile{$whichProfile}"]['CurrentSave'] = $save_info['CS'];
     }
 
     if(isset($save_info['TimeSave']))
     {
-        $new_data["profile{$whichProfile}"]['CurrentTime'] = $save_info['CT'];
+        $new_data['story']["profile{$whichProfile}"]['CurrentTime'] = $save_info['CT'];
     }
 
     if(isset($_POST['needD']))
     {
         for ($gen = 1; $gen <= 6; $gen++)
         {
-            $new_data["profile{$_POST["whichProfile"]}"]["pokedex_{$gen}"] = $_POST["dextra{$gen}"];
+            $new_data['story']["pokedex_{$gen}"] = $_POST["dextra{$gen}"];
         }
     }
 
-    $new_data["profile"]['poke'] = decode_pokeinfo($_POST['extra3']);
-    $new_data['inventory'] = decode_inventory($_POST['extra4']);
+    $pokes = decode_pokeinfo($_POST['extra3']);
+    foreach ($pokes as $key => $poke)
+    {
+        if (isset($poke['needNickname']))
+        {
+            $tmp = $key + 1;
+            $nickname = $save_info["PokeNick$tmp"];
+            $pokes[$key]['Nickname'] = $nickname;
+            unset($pokes[$key]['needNickname']);
+        }
+    }
+    $items = decode_inventory($_POST['extra4']);
+    $extra = decode_extra($_POST['extra2']);
 
-
+    $new_data['story']["profile{$_POST["whichProfile"]}"]['poke'] = $pokes;
+    $new_data['story']["profile{$_POST["whichProfile"]}"]['extra'] = $extra;
+    $new_data['story']["profile{$_POST["whichProfile"]}"]['items'] = $items;
     update_account_data($email, $pass, $new_data);
     return 'Result=Success';
+}
+
+function delete_story(string $email, string $pass): string
+{
+    $whichProfile = $_POST['whichProfile'];
+    if (delete_profile($email, $pass, 'story', "profile{$whichProfile}")) {
+        return 'Result=Success';
+    }
+    return 'Result=Failure&Reason=NotFound';
 }
 
 function load_1v1($email, $pass)
@@ -147,6 +206,12 @@ case 'loadAccount':
     break;
 case 'loadStory':
     echo load_story($email, $pass);
+    break;
+case 'loadStoryProfile':
+    echo load_story_profile($email, $pass);
+    break;
+case 'deleteStory':
+    echo delete_story($email, $pass);
     break;
 case 'saveStory':
     echo save_story($email, $pass);

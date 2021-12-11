@@ -2,6 +2,13 @@
 
 const letterList = ['m', 'y', 'w', 'c', 'q', 'a', 'p', 'r', 'e', 'o'];
 
+function check_len($encoded_data)
+{
+    $expected_size_len = convertStringToInt($encoded_data[0]);
+    $expected_size = convertStringToInt(substr($encoded_data, 1, $expected_size_len));
+    return (strlen($encoded_data) == $expected_size);
+}
+
 function convertToString(int $param1): string
 {
     if ($param1 < count(letterList))
@@ -61,7 +68,7 @@ function convertIntToString(int $num)
 
 function get_Length(int $param1, int $param2): string
 {
-    $loc3 = $param1 + $param2 + 2;
+    $loc3 = $param1 + $param2 + 1;
     $loc5 = "$loc3";
     $loc4 = strlen($loc5);
 
@@ -71,89 +78,312 @@ function get_Length(int $param1, int $param2): string
     }
     return "$loc4$loc5";
 }
+
+function create_Check_Sum(string $encoded_info)
+{
+    $checksum = 15;
+    for ($i = 0; $i < strlen($encoded_info); $i++)
+    {
+        $char = $encoded_info[$i];
+        if (is_numeric($char))
+        {
+            $checksum += (int) $encoded_info[$i];
+        }
+        else
+        {
+            $checksum += ord($encoded_info[$i]) - 96;
+        }
+    }
+    return $checksum * 3;
+}
+
 function decode_pokeinfo(string $encoded_pokeinfo): array
 {
     $pokemons = array();
+    $pointer = 0;
+    $data_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+    $pointer += $data_len_len;
 
-    // getting the number of pokes
-    $loc17 = 0;
-    $loc26 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-    $loc14 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc26));
-    $loc17 += $loc26;
-    $loc26 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-    $loc19 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc26));
-    $loc17 += $loc26;
-
-    for ($i = 1; $i <= $loc19; $i++)
+    $pokes_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+    $pokes = convertStringToInt(substr($encoded_pokeinfo, $pointer, $pokes_len));
+    $pointer += $pokes_len;
+    for ($i = 0; $i < $pokes; $i++)
     {
         $poke = array();
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $num = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc7 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $loc31 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc7));
-        $loc17 += $loc7;
-        $xp = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $lvl = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $move1 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $move2 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $move3 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $move4 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17]);
-        $loc23 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $gender = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc7 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $loc31 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc7));
-        $loc17 += $loc7;
-        $loc29 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $pos = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $shiny = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $item = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
-        $loc17 += $loc31;
-        $loc31 = convertStringToInt($encoded_pokeinfo[$loc17++]);
-        $loc4 = convertStringToInt(substr($encoded_pokeinfo, $loc17, $loc31));
+        $poke_info_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+        $poke_info_len =  convertStringToInt(substr($encoded_pokeinfo, $pointer, $poke_info_len_len));
+        $pointer += $poke_info_len_len;
 
-        $poke['num'] = $num;
-        $poke['gender'] = $gender;
-        $poke['experience'] = $xp;
-        $poke['move1'] = $move1;
-        $poke['move2'] = $move2;
-        $poke['move3'] = $move3;
-        $poke['move4'] = $move4;
-        $poke['shiny'] = $shiny;
-        $poke['saveID'] = $loc29;
-        $poke['targetingType'] = $loc23;
-        $poke['pos'] = $pos;
-        $poke['myTag'] = $loc4;
-        $poke['item'] = $item;
-        $poke['lvl'] = $lvl;
+        $saveID_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+        $saveID = convertStringToInt(substr($encoded_pokeinfo, $pointer, $saveID_len));
+        $poke['saveID'] = $saveID;
+        $pointer += $saveID_len + 1;
+        for ($j = 0; $j < $poke_info_len; $j++)
+        {
+            $info_type_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+            $info_type = convertStringToInt(substr($encoded_pokeinfo, $pointer, $info_type_len));
+            $pointer += $info_type_len;
+            switch ($info_type)
+            {
+            case 1: // Captured
+                $poke['needNickname'] = true;
 
+                $num_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $num = convertStringToInt(substr($encoded_pokeinfo, $pointer, $num_len));
+                $poke['num'] = $num;
+                $pointer += $num_len;
+
+                $xp_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $xp_len = convertStringToInt(substr($encoded_pokeinfo, $pointer, $xp_len_len));
+                $pointer += $xp_len_len;
+                $xp = convertStringToInt(substr($encoded_pokeinfo, $pointer, $xp_len));
+                $poke['xp'] = $xp;
+                $pointer += $xp_len;
+
+                $lvl_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $lvl = convertStringToInt(substr($encoded_pokeinfo, $pointer, $lvl_len));
+                $poke['lvl'] = $lvl;
+                $pointer += $lvl_len;
+
+                $move1_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move1 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move1_len));
+                $poke['move1'] = $move1;
+                $pointer += $move1_len;
+
+                $move2_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move2 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move2_len));
+                $poke['move2'] = $move2;
+                $pointer += $move2_len;
+
+                $move3_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move3 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move3_len));
+                $poke['move3'] = $move3;
+                $pointer += $move3_len;
+
+                $move4_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move4 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move4_len));
+                $poke['move4'] = $move4;
+                $pointer += $move4_len;
+
+                $tt_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $tt = convertStringToInt(substr($encoded_pokeinfo, $pointer, $tt_len)); // Targeting Type
+                $poke['targetingType'] = $tt;
+                $pointer += $tt_len;
+
+                $gender_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $gender = convertStringToInt(substr($encoded_pokeinfo, $pointer, $gender_len));
+                $poke['gender'] = $gender;
+                $pointer += $gender_len;
+
+                $pos_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $pos = convertStringToInt(substr($encoded_pokeinfo, $pointer, $pos_len));
+                $poke['pos'] = $pos;
+                $pointer += $pos_len;
+
+                $extra_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $extra = convertStringToInt(substr($encoded_pokeinfo, $pointer, $extra_len));
+                $poke['extra'] = $extra;
+                $pointer += $extra_len;
+
+                $item_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $item = convertStringToInt(substr($encoded_pokeinfo, $pointer, $item_len));
+                $poke['item'] = $item;
+                $pointer += $item_len;
+
+                $tag_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $tag = substr($encoded_pokeinfo, $pointer, $tag_len);
+                $poke['tag'] = $tag;
+                $pointer += $tag_len;
+                break;
+            case 2: // Level up
+                $lvl_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $lvl = convertStringToInt(substr($encoded_pokeinfo, $pointer, $lvl_len));
+                $poke['lvl'] = $lvl;
+                $pointer += $lvl_len;
+                break;
+            case 3: // XP up
+                $xp_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $xp_len = convertStringToInt(substr($encoded_pokeinfo, $pointer, $xp_len_len));
+                $pointer += $xp_len_len;
+                $xp = convertStringToInt(substr($encoded_pokeinfo, $pointer, $xp_len));
+                $poke['xp'] = $xp;
+                $pointer += $xp_len;
+                break;
+            case 4: // Change moves
+                $move1_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move1 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move1_len));
+                $poke['move1'] = $move1;
+                $pointer += $move1_len;
+
+                $move2_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move2 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move2_len));
+                $poke['move2'] = $move2;
+                $pointer += $move2_len;
+
+                $move3_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move3 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move3_len));
+                $poke['move3'] = $move3;
+                $pointer += $move3_len;
+
+                $move4_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $move4 = convertStringToInt(substr($encoded_pokeinfo, $pointer, $move4_len));
+                $poke['move4'] = $move4;
+                $pointer += $move4_len;
+                break;
+            case 5: // Change Item
+                $item_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $item = convertStringToInt(substr($encoded_pokeinfo, $pointer, $item_len));
+                $poke['item'] = $item;
+                $pointer += $item_len;
+                break;
+            case 6: // Evolve
+                $num_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $num = convertStringToInt(substr($encoded_pokeinfo, $pointer, $num_len));
+                $poke['num'] = $num;
+                $pointer += $num_len;
+                break;
+            case 7: // Change Nickname
+                $poke['needNickname'] = true;
+                break;
+            case 8: // Pos change
+                $pos_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $pos = convertStringToInt(substr($encoded_pokeinfo, $pointer, $pos_len));
+                $poke['pos'] = $pos;
+                $pointer += $pos_len;
+                break;
+            case 9: // Need Tag
+                $tag_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $tag = substr($encoded_pokeinfo, $pointer, $tag_len);
+                $poke['tag'] = $tag;
+                $pointer += $tag_len;
+                break;
+            case 10: // Need Trade
+                $num_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+                $num = convertStringToInt(substr($encoded_pokeinfo, $pointer, $num_len));
+                $poke['num'] = $num;
+                $pointer += $num_len;
+                break;
+            }
+        }
         array_push($pokemons, $poke);
     }
 
     return $pokemons;
 }
 
+function encode_pokemons($pokemons)
+{
+    $NPokes = convertIntToString(count($pokemons));
+    $NPokes_len = convertIntToString(strlen($NPokes));
+    $encoded_pokes = "$NPokes_len$NPokes";
+    foreach ($pokemons as $poke)
+    {
+        $num = convertIntToString($poke['num']);
+        $num_len = convertIntToString(strlen($num));
+        $xp = convertIntToString($poke['xp']);
+        $xp_len = convertIntToString(strlen($xp));
+        $xp_len_len = convertIntToString(strlen($xp_len));
+        $lvl = convertIntToString($poke['lvl']);
+        $lvl_len = convertIntToString(strlen($lvl));
+        $move1 = convertIntToString($poke['move1']);
+        $move1_len = convertIntToString(strlen($move1));
+        $move2 = convertIntToString($poke['move2']);
+        $move2_len = convertIntToString(strlen($move2));
+        $move3 = convertIntToString($poke['move3']);
+        $move3_len = convertIntToString(strlen($move3));
+        $move4 = convertIntToString($poke['move4']);
+        $move4_len = convertIntToString(strlen($move4));
+        $tt = convertIntToString($poke['targetingType']);
+        $tt_len = convertIntToString(strlen($tt));
+        $gender = convertIntToString($poke['gender']);
+        $gender_len = convertIntToString(strlen($gender));
+        $saveID = convertIntToString($poke['saveID']);
+        $saveID_len = convertIntToString(strlen($saveID));
+        $saveID_len_len = convertIntToString(strlen($saveID_len));
+        $pos = convertIntToString($poke['pos']);
+        $pos_len = convertIntToString(strlen($pos));
+        // $shiny = convertIntToString(0); // TODO: Implement Shinys
+        // $shiny_len = convertIntToString(strlen($shiny));
+        $extra = convertIntToString($poke['extra']);
+        $extra_len = convertIntToString(strlen($extra));
+        $item = convertIntToString($poke['item']);
+        $item_len = convertIntToString(strlen($item));
+        $tag = $poke['tag'];
+        $tag_len = convertIntToString(strlen($tag));
+
+        $encoded_pokes .= $num_len . $num . $xp_len_len . $xp_len . $xp
+            . $lvl_len . $lvl . $move1_len . $move1 . $move2_len . $move2
+            . $move3_len . $move3 . $move4_len . $move4 . $tt_len . $tt
+            . $gender_len . $gender . $saveID_len_len . $saveID_len . $saveID . $pos_len . $pos
+            . $extra_len . $extra . $item_len . $item . $tag_len . $tag;
+        }
+    $encoded_len = strlen($encoded_pokes);
+    $encoded_len_len = strlen($encoded_len);
+    $final_len = convertIntToString(get_Length($encoded_len_len, $encoded_len));
+    $encoded_pokes = $final_len . $encoded_pokes;
+    return $encoded_pokes;
+}
+
+function encode_inventory($items): string
+{
+    $encoded_items = '';
+    $qnt = 0;
+    foreach ($items as $num => $quantity)
+    {
+        if ($quantity > 0)
+        {
+            $qnt++;
+            $encoded_num = convertIntToString($num);
+            $num_len = convertIntToString(strlen($encoded_num));
+            $quantity = convertIntToString($quantity);
+            $quantity_len = convertIntToString(strlen($quantity));
+
+            $encoded_items .= $num_len . $encoded_num . $quantity_len . $quantity;
+        }
+    }
+    $inventory_len = convertIntToString($qnt);
+    $inventory_len_len = convertIntToString(strlen($inventory_len));
+
+    $encoded_items = $inventory_len_len . $inventory_len . $encoded_items;
+    $encoded_len = strlen($encoded_items);
+    $encoded_len_len = strlen($encoded_len);
+    $final_len = convertIntToString(get_Length($encoded_len_len, $encoded_len));
+
+    $encoded_items = $final_len . $encoded_items;
+
+    return $encoded_items;
+}
+
+function decode_inventory(string $encoded_items): array
+{
+    $items = array();
+    $pointer = 0;
+    $encoded_len_len = convertStringToInt($encoded_items[$pointer++]);
+    $pointer += $encoded_len_len;
+    $inventory_len_len = convertStringToInt($encoded_items[$pointer++]);
+    $inventory_len = convertStringToInt(substr($encoded_items, $pointer, $inventory_len_len));
+    $pointer += $inventory_len_len;
+
+    for ($i = 0; $i < $inventory_len; $i++)
+    {
+        $num_len = convertStringToInt($encoded_items[$pointer++]);
+        $num = convertStringToInt(substr($encoded_items, $pointer, $num_len));
+        $pointer += $num_len;
+        $quantity_len = convertStringToInt($encoded_items[$pointer++]);
+        $quantity = convertStringToInt(substr($encoded_items, $pointer, $quantity_len));
+        $pointer += $quantity_len;
+        $items[$num] = $quantity;
+    }
+    return $items;
+}
+
+function decode_extra(string $encoded_extra): array
+{
+    // TODO: truly decode the extra info and save only the necessary items 
+    // (currently also saves anticheat only data)
+    $extra = decode_inventory($encoded_extra);
+    return $extra;
+}
 
 function decode_1v1(string $encoded_data): array
 {
@@ -165,7 +395,6 @@ function decode_1v1(string $encoded_data): array
     $len2 = convertStringToInt(substr($encoded_data, $tmp1, $len1));
     $tmp1 += $len1;
 
-
     $money_len = convertStringToInt($encoded_data[$tmp1++]);
     $money = convertStringToInt(substr($encoded_data, $tmp1, $money_len));
     $tmp1 += $money_len;
@@ -174,8 +403,6 @@ function decode_1v1(string $encoded_data): array
 
     $data['money'] = $money;
     $data['levelUnlocked'] = $levels_unlocked;
-
-
     return $data;
 }
 
@@ -197,12 +424,72 @@ function encode_1v1(array $profiles): string
         $encoded_data .= $whichProfile . $money_len . $encoded_money . $levels_len . $encoded_levels;
     }
     $PA = convertIntToString($PA);
+    $encoded_data = $PA . $encoded_data;
     $data_len = strlen($encoded_data);
-    $data_len_len = strlen($data_len); // WTF
+    $data_len_len = strlen($data_len);
     $encoded_len = convertIntToString(get_Length($data_len_len, $data_len));
+
+    $encoded_data = $encoded_len .  $encoded_data;
+
+    return $encoded_data;
+}
+
+function encode_story(array $story_data): string
+{
+    $encoded_data = '';
+    $PA = 0;
+
+    for ($i = 1; $i <= 3; $i++)
+    {
+        if (array_key_exists("profile$i", $story_data))
+        {
+            $profile = $story_data["profile$i"];
+            $PA++;
+            $whichProfile = convertIntToString($i);
+            $encoded_money = convertIntToString($profile['Money']);
+            $money_len = convertIntToString(strlen($encoded_money));
+
+            $encoded_badges = convertIntToString(0); // TODO: Implement badges
+            $badges_len = convertIntToString(strlen($encoded_badges));
+
+            $encoded_data .= $whichProfile . $money_len . $encoded_money . $badges_len . $encoded_badges;
+        }
+    }
+    $PA = convertIntToString($PA);
+    $data_len = strlen($encoded_data);
+    $data_len_len = strlen($data_len);
+    $encoded_len = convertIntToString(get_Length($data_len_len, $data_len) + 1);
 
     $encoded_data = $encoded_len . $PA . $encoded_data;
 
+    return $encoded_data;
+}
+
+function encode_story_profile(array $profile): array
+{
+    $encoded_data = array();
+    $extra = '';
+
+    $currentMap = convertIntToString($profile['MapLoc']);
+    $Map_len = convertIntToString(strlen($currentMap));
+    $currentSpot = convertIntToString($profile['MapSpot']);
+    $Spot_len = convertIntToString(strlen($currentSpot));
+    $extra = $Map_len . $currentMap . $Spot_len . $currentSpot;
+
+    $extra_len = strlen($extra);
+    $extra_len_len = strlen($extra_len);
+    $encoded_extra_len = convertIntToString(get_Length($extra_len_len, $extra_len));
+
+    $extra = $encoded_extra_len . $extra;
+
+    $extra2 = encode_inventory($profile['extra']); // Extra info is compatible with items encoding method
+
+    $extra3 = encode_pokemons($profile['poke']);
+
+    $extra4 = encode_inventory($profile['items']);
+
+    $extra5 = convertIntToString(create_Check_Sum($extra3 . $profile['CurrentSave']));
+    $encoded_data = [$extra, $extra2, $extra3, $extra4, $extra5];
     return $encoded_data;
 }
 ?>

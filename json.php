@@ -17,7 +17,7 @@ function get_account($email, $pass)
     $accounts = get_accounts();
     foreach ($accounts as $account)
     {
-        if ($account['email'] === $email && $account['pass'] === $pass)
+        if ($account['email'] === $email && password_verify($pass, $account['pass']))
         {
             return $account;
         }
@@ -42,7 +42,7 @@ function update_account_data($email, $pass, $new_data): bool
     $accounts = get_accounts();
     foreach ($accounts as $index => $account)
     {
-        if ($account['email'] === $email && $account['pass'] === $pass)
+        if ($account['email'] === $email && password_verify($pass, $account['pass']))
         {
             $accounts[$index] = array_replace_recursive($accounts[$index], $new_data);
             $data = json_encode($accounts);
@@ -58,7 +58,7 @@ function delete_profile($email, $pass, $game_mode, $profile): bool
     $accounts = get_accounts();
     foreach ($accounts as $index => $account)
     {
-        if ($account['email'] === $email && $account['pass'] === $pass)
+        if ($account['email'] === $email && password_verify($pass, $account['pass']))
         {
             unset($accounts[$index][$game_mode][$profile]);
             $data = json_encode($accounts);

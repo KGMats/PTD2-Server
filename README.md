@@ -1,5 +1,5 @@
 # Goals
-- [ ] Make Story mode playable
+- [x] Make Story mode playable
 - [x] Make 1v1 mode playable
 - [ ] Make Gym Challenges playable
 - [ ] Implement Mystery gifts
