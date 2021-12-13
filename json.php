@@ -12,6 +12,19 @@ function account_exists($email): bool
     return false;
 }
 
+function autenticate_account($email, $pass): bool
+{
+    $accounts = get_accounts();
+    foreach ($accounts as $account)
+    {
+        if ($account['email'] === $email && password_verify($pass, $account['pass']))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 function get_account($email, $pass)
 {
     $accounts = get_accounts();

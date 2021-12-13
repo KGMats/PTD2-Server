@@ -20,7 +20,7 @@ function create_account($email, $pass): string
 
 function load_account($email, $pass): string
 {
-    if (get_account($email, $pass))
+    if (autenticate_account($email, $pass))
     {
         return 'Result=Success&Reason=loadedAccount&p=1'; // Trainer pass for everyone!
     }
