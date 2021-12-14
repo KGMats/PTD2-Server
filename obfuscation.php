@@ -182,6 +182,10 @@ function decode_pokeinfo(string $encoded_pokeinfo): array
 
                 $extra_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
                 $extra = convertStringToInt(substr($encoded_pokeinfo, $pointer, $extra_len));
+                if ($extra != 0)
+                {
+                    $extra = $extra == $num ? 1 : 2;
+                }
                 $poke['extra'] = $extra;
                 $pointer += $extra_len;
 
