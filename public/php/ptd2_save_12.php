@@ -1,6 +1,12 @@
 <?php
 header('Content-Type: application/x-www-form-urlencoded');
 
+if(isset($_POST['debug']))
+{
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
+
 require_once '../../json.php';
 require_once '../../obfuscation.php';
 
@@ -77,10 +83,10 @@ function load_story_profile($email, $pass): string
         $result .= "extra3={$encoded_data[2]}&";
         $result .= "extra4={$encoded_data[3]}&";
         $result .= "extra5={$encoded_data[4]}";
-        for ($i = 0; $i < count($profile['poke']); $i++)
+        foreach ($profile['poke'] as $id => $poke)
         {
-            $num = $i + 1;
-            $result .= "&PN{$num}={$profile['poke'][$i]['Nickname']}";
+            $tmp = $poke['pos'] + 1;
+            $result .= "&PN{$tmp}={$poke['Nickname']}";
         }
         $result = 'Result=Success&' . $result;
         return $result;
@@ -97,11 +103,16 @@ function save_story($email, $pass): string
 
     if(isset($save_info['NewGameSave']))
     {
+        $profile = array();
         $new_data['story']["profile{$whichProfile}"] = ['Nickname' => $save_info['Nickname'],
             'Color' => $save_info["Color"],
             'Gender' => $save_info["Gender"],
             'Money' => 10,
             'CurrentTime' => 100];
+    }
+    else
+    {
+        $profile = get_account($email, $pass)['story']["profile{$whichProfile}"];
     }
 
     if(isset($save_info['MapSave']))
@@ -133,17 +144,18 @@ function save_story($email, $pass): string
         }
     }
 
-    $pokes = decode_pokeinfo($_POST['extra3']);
+    $pokes = decode_pokeinfo($_POST['extra3'], $profile);
     foreach ($pokes as $key => $poke)
     {
         if (isset($poke['needNickname']))
         {
-            $tmp = $key + 1;
+            $tmp = $poke['pos'] + 1;
             $nickname = $save_info["PokeNick$tmp"];
             $pokes[$key]['Nickname'] = $nickname;
             unset($pokes[$key]['needNickname']);
         }
     }
+
     $items = decode_inventory($_POST['extra4']);
     $extra = decode_extra($_POST['extra2']);
 
