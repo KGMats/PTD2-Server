@@ -2,13 +2,6 @@
 
 const letterList = ['m', 'y', 'w', 'c', 'q', 'a', 'p', 'r', 'e', 'o'];
 
-function check_len($encoded_data)
-{
-    $expected_size_len = convertStringToInt($encoded_data[0]);
-    $expected_size = convertStringToInt(substr($encoded_data, 1, $expected_size_len));
-    return (strlen($encoded_data) == $expected_size);
-}
-
 function convertToString(int $param1): string
 {
     if ($param1 < count(letterList))
@@ -97,9 +90,14 @@ function create_Check_Sum(string $encoded_info)
     return $checksum * 3;
 }
 
-function decode_pokeinfo(string $encoded_pokeinfo): array
+function decode_pokeinfo(string $encoded_pokeinfo, $profile): array
 {
     $pokemons = array();
+    $AvaliableSaveID = 0;
+    if (isset($profile['poke']))
+    {
+        $AvaliableSaveID = count($profile['poke']);
+    }
     $pointer = 0;
     $data_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
     $pointer += $data_len_len;
@@ -114,10 +112,12 @@ function decode_pokeinfo(string $encoded_pokeinfo): array
         $poke_info_len =  convertStringToInt(substr($encoded_pokeinfo, $pointer, $poke_info_len_len));
         $pointer += $poke_info_len_len;
 
-        $saveID_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+        $saveID_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
+        $saveID_len = convertStringToInt(substr($encoded_pokeinfo, $pointer, $saveID_len_len));
+        $pointer += $saveID_len_len;
         $saveID = convertStringToInt(substr($encoded_pokeinfo, $pointer, $saveID_len));
+        $pointer += $saveID_len;
         $poke['saveID'] = $saveID;
-        $pointer += $saveID_len + 1;
         for ($j = 0; $j < $poke_info_len; $j++)
         {
             $info_type_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
@@ -127,6 +127,7 @@ function decode_pokeinfo(string $encoded_pokeinfo): array
             {
             case 1: // Captured
                 $poke['needNickname'] = true;
+                $poke['saveID'] = $AvaliableSaveID++;
 
                 $num_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
                 $num = convertStringToInt(substr($encoded_pokeinfo, $pointer, $num_len));
@@ -269,9 +270,8 @@ function decode_pokeinfo(string $encoded_pokeinfo): array
                 break;
             }
         }
-        array_push($pokemons, $poke);
+        $pokemons[$poke['saveID']] = $poke;
     }
-
     return $pokemons;
 }
 
@@ -280,6 +280,7 @@ function encode_pokemons($pokemons)
     $NPokes = convertIntToString(count($pokemons));
     $NPokes_len = convertIntToString(strlen($NPokes));
     $encoded_pokes = "$NPokes_len$NPokes";
+    $parts = [];
     foreach ($pokemons as $poke)
     {
         $num = convertIntToString($poke['num']);
@@ -306,8 +307,6 @@ function encode_pokemons($pokemons)
         $saveID_len_len = convertIntToString(strlen($saveID_len));
         $pos = convertIntToString($poke['pos']);
         $pos_len = convertIntToString(strlen($pos));
-        // $shiny = convertIntToString(0); // TODO: Implement Shinys
-        // $shiny_len = convertIntToString(strlen($shiny));
         $extra = convertIntToString($poke['extra']);
         $extra_len = convertIntToString(strlen($extra));
         $item = convertIntToString($poke['item']);
@@ -315,12 +314,14 @@ function encode_pokemons($pokemons)
         $tag = $poke['tag'];
         $tag_len = convertIntToString(strlen($tag));
 
-        $encoded_pokes .= $num_len . $num . $xp_len_len . $xp_len . $xp
-            . $lvl_len . $lvl . $move1_len . $move1 . $move2_len . $move2
-            . $move3_len . $move3 . $move4_len . $move4 . $tt_len . $tt
-            . $gender_len . $gender . $saveID_len_len . $saveID_len . $saveID . $pos_len . $pos
-            . $extra_len . $extra . $item_len . $item . $tag_len . $tag;
+        $parts[$poke['pos']] = $num_len . $num . $xp_len_len . $xp_len . $xp
+           . $lvl_len . $lvl . $move1_len . $move1 . $move2_len . $move2
+           . $move3_len . $move3 . $move4_len . $move4 . $tt_len . $tt
+           . $gender_len . $gender . $saveID_len_len . $saveID_len . $saveID . $pos_len . $pos
+           . $extra_len . $extra . $item_len . $item . $tag_len . $tag;
         }
+    ksort($parts);
+    $encoded_pokes .= join($parts);
     $encoded_len = strlen($encoded_pokes);
     $encoded_len_len = strlen($encoded_len);
     $final_len = convertIntToString(get_Length($encoded_len_len, $encoded_len));
@@ -383,8 +384,6 @@ function decode_inventory(string $encoded_items): array
 
 function decode_extra(string $encoded_extra): array
 {
-    // TODO: truly decode the extra info and save only the necessary items 
-    // (currently also saves anticheat only data)
     $extra = decode_inventory($encoded_extra);
     return $extra;
 }
@@ -453,7 +452,7 @@ function encode_story(array $story_data): string
             $encoded_money = convertIntToString($profile['Money']);
             $money_len = convertIntToString(strlen($encoded_money));
 
-            $encoded_badges = convertIntToString(0); // TODO: Implement badges
+            $encoded_badges = convertIntToString(get_badges($profile['extra']));
             $badges_len = convertIntToString(strlen($encoded_badges));
 
             $encoded_data .= $whichProfile . $money_len . $encoded_money . $badges_len . $encoded_badges;
@@ -495,5 +494,42 @@ function encode_story_profile(array $profile): array
     $extra5 = convertIntToString(create_Check_Sum($extra3 . $profile['CurrentSave']));
     $encoded_data = [$extra, $extra2, $extra3, $extra4, $extra5];
     return $encoded_data;
+}
+
+function get_badges(array $extra): int
+{
+    $badges = 0;
+    if (isset($extra[48]) && $extra[48] === 2)
+    {
+        $badges = 1;
+    }
+    if (isset($extra[59]) && $extra[59] === 2)
+    {
+        $badges = 2;
+    }
+    if (isset($extra[64]))
+    {
+        if ($extra[64] >= 12)
+        {
+            $badges = 8;
+        }
+        else if ($extra[64] >= 11)
+        {
+            $badges = 7;
+        }
+        else if ($extra[64] >= 9)
+        {
+            $badges = 5;
+        }
+        else if ($extra[64] >= 7)
+        {
+            $badges = 4;
+        }
+        else if ($extra[64] >= 1)
+        {
+            $badges = 3;
+        }
+    }
+    return $badges;
 }
 ?>
