@@ -145,16 +145,15 @@ function save_story($email, $pass): string
     }
 
     $pokes = decode_pokeinfo($_POST['extra3'], $profile);
-    $counter = 1;
     foreach ($pokes as $key => $poke)
     {
         if (isset($poke['needNickname']))
         {
-            $nickname = $save_info["PokeNick{$counter}"];
+            $pokenicknum = $poke['needNickname'];
+            $nickname = $save_info["PokeNick{$pokenicknum}"];
             $pokes[$key]['Nickname'] = $nickname;
             unset($pokes[$key]['needNickname']);
         }
-        $counter++;
     }
 
     $items = decode_inventory($_POST['extra4']);
@@ -204,7 +203,6 @@ function delete_1v1(string $email, string $pass): string
     delete_profile($email, $pass, '1v1', "profile{$whichProfile}");
     return 'Result=Success';
 }
-
 
 $email = $_POST['Email'];
 $pass = $_POST['Pass'];

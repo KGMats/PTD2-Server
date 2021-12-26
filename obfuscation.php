@@ -126,7 +126,7 @@ function decode_pokeinfo(string $encoded_pokeinfo, $profile): array
             switch ($info_type)
             {
             case 1: // Captured
-                $poke['needNickname'] = true;
+                $poke['needNickname'] = $i + 1;
                 $poke['saveID'] = $AvaliableSaveID++;
 
                 $num_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
@@ -248,7 +248,7 @@ function decode_pokeinfo(string $encoded_pokeinfo, $profile): array
                 $pointer += $num_len;
                 break;
             case 7: // Change Nickname
-                $poke['needNickname'] = true;
+                $poke['needNickname'] = $i + 1;
                 break;
             case 8: // Pos change
                 $pos_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
