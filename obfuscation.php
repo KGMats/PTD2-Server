@@ -314,6 +314,14 @@ function encode_pokemons($pokemons)
         $tag = $poke['tag'];
         $tag_len = convertIntToString(strlen($tag));
 
+        while (isset($parts[$poke['pos']]))
+        {
+            // this is to avoid suspect of hacking
+            // For some reason sometimes the game
+            // sends only the new pos of one poke
+
+            $poke['pos']++;
+        }
         $parts[$poke['pos']] = $num_len . $num . $xp_len_len . $xp_len . $xp
            . $lvl_len . $lvl . $move1_len . $move1 . $move2_len . $move2
            . $move3_len . $move3 . $move4_len . $move4 . $tt_len . $tt
