@@ -5,7 +5,7 @@
 - [ ] Implement Mystery gifts
 - [ ] Recreate pokecenter
 - [ ] Implement multiplayer (Trainer VS)
-- [ ] Implement MySQL-based saves
+- [x] Implement MySQL-based saves
 
 # How to host my own PTD2 server?
 Requirements:
@@ -23,12 +23,12 @@ open a text editor with administrative permissions and open nginx.conf file, it 
 
 Uncomment php FastCGI lines
 
-```
+``` nginx
 location ~ \.php$ {
 	fastcgi_pass    127.0.0.1:9000;
 	fastcgi_index   index.php;
 	fastcgi_param   SCRIPT_FILENAME;
-	include	  			fastcgi_params
+	include   fastcgi_params
 	}
 ```
 

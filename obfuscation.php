@@ -90,14 +90,10 @@ function create_Check_Sum(string $encoded_info)
     return $checksum * 3;
 }
 
-function decode_pokeinfo(string $encoded_pokeinfo, $profile): array
+function decode_pokeinfo(string $encoded_pokeinfo, $email): array
 {
     $pokemons = array();
-    $AvaliableSaveID = 0;
-    if (isset($profile['poke']))
-    {
-        $AvaliableSaveID = count($profile['poke']);
-    }
+    $AvaliableSaveID = get_avaliable_saveID($email);
     $pointer = 0;
     $data_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
     $pointer += $data_len_len;
