@@ -1,6 +1,6 @@
 <?php
 
-$mysqli = new mysqli(getenv('database_host'), getenv('database_user'), getenv('database_pass'), getenv('database_name'));
+$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 if($mysqli->connect_error) {
     echo 'Result=Failure&Reason=DatabaseConnection';
@@ -102,6 +102,7 @@ function account_exists(string $email)
     $stmt = $mysqli->prepare('SELECT email FROM accounts WHERE email=?');
     $stmt->bind_param('s', $email);
     $stmt->execute();
+    $stmt->close();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
     return $row;
@@ -113,6 +114,7 @@ function create_new_account(array $account): void
     $stmt = $mysqli->prepare('INSERT INTO accounts (email, pass) VALUES (?,?);');
     $stmt->bind_param('ss', $account['email'], $account['pass']);
     $stmt->execute();
+    $stmt->close();
 }
 
 function autenticate_account(string $email, string $pass): bool
@@ -121,6 +123,7 @@ function autenticate_account(string $email, string $pass): bool
     $stmt = $mysqli->prepare('SELECT pass FROM accounts WHERE email=?');
     $stmt->bind_param('s', $email);
     $stmt->execute();
+    $stmt->close();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
     return password_verify($pass, $row['pass']);
@@ -132,6 +135,7 @@ function get_story($email, $pass)
     $stmt = $mysqli->prepare('SELECT dex1, dex2, dex3, dex4, dex5, dex6 FROM accounts WHERE email=?');
     $stmt->bind_param('s', $email);
     $stmt->execute();
+    $stmt->close();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
     if (isset($row['dex1']))
@@ -147,6 +151,7 @@ function get_story($email, $pass)
         $stmt = $mysqli->prepare('SELECT Nickname, Money, Color, num  FROM story WHERE email=?');
         $stmt->bind_param('s', $email);
         $stmt->execute();
+        $stmt->close();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc())
         {
@@ -154,6 +159,7 @@ function get_story($email, $pass)
             $extra_stmt = $mysqli->prepare('SELECT num, value  FROM extra WHERE email=? && owner=?');
             $extra_stmt->bind_param('si', $email,$row['num']);
             $extra_stmt->execute();
+            $extra_stmt->close();
             $extra_result = $extra_stmt->get_result();
             while ($extra_row = $extra_result->fetch_assoc())
             {
@@ -177,6 +183,7 @@ function get_story_profile($email, $whichProfile)
     $profile_stmt = $mysqli->prepare('SELECT Gender, MapLoc, MapSpot, CurrentSave, CurrentTime FROM story WHERE email=? && num=?');
     $profile_stmt->bind_param('si', $email, $whichProfile);
     $profile_stmt->execute();
+    $profile_stmt->close();
     $result = $profile_stmt->get_result();
     $profile = $result->fetch_array(MYSQLI_ASSOC);
 
@@ -185,6 +192,7 @@ function get_story_profile($email, $whichProfile)
     $pokes_stmt = $mysqli->prepare('SELECT Nickname, num, saveID, xp, lvl, move1, move2, move3, move4, targetingType, gender, pos, extra, item, tag FROM pokes WHERE email=? && owner=?');
     $pokes_stmt->bind_param('si', $email, $whichProfile);
     $pokes_stmt->execute();
+    $pokes_stmt->close();
     $pokes_result = $pokes_stmt->get_result();
 
     while ($poke = $pokes_result->fetch_array(MYSQLI_ASSOC))
@@ -196,6 +204,7 @@ function get_story_profile($email, $whichProfile)
     $extra_stmt = $mysqli->prepare('SELECT num, value  FROM extra WHERE email=? && owner=?');
     $extra_stmt->bind_param('si', $email, $whichProfile);
     $extra_stmt->execute();
+    $extra_stmt->close();
     $extra_result = $extra_stmt->get_result();
     while ($extra_row = $extra_result->fetch_array(MYSQLI_NUM))
     {
@@ -206,6 +215,7 @@ function get_story_profile($email, $whichProfile)
     $items_stmt = $mysqli->prepare('SELECT num, value  FROM extra WHERE email=? && owner=?');
     $items_stmt->bind_param('si', $email, $whichProfile);
     $items_stmt->execute();
+    $items_stmt->close();
     $items_result = $items_stmt->get_result();
     while ($item_row = $items_result->fetch_array(MYSQLI_NUM))
     {
@@ -243,6 +253,7 @@ function update_account_data($email, $pass, $new_data)
                 $email
             );
             $stmt->execute();
+            $stmt->close();
         }
 
         foreach ($new_data['story']["profile{$whichProfile}"] as $key => $value)
@@ -264,6 +275,7 @@ function update_account_data($email, $pass, $new_data)
                     $new_data['story']["profile{$whichProfile}"]['CurrentTime'],
                     $email);
                 $new_acc_stmt->execute();
+                $new_acc_stmt->close();
                 break;
             case 'items':
             case 'extra':
@@ -272,6 +284,7 @@ function update_account_data($email, $pass, $new_data)
                    $stmt = $mysqli->prepare("UPDATE $key SET value=? where email=? && num=? && owner=?");
                     $stmt->bind_param('isii', $quantity, $email, $item_num, $whichProfile);
                     $stmt->execute();
+                    $stmt->close();
                    if ($stmt->affected_rows === 0)
                    {
                        $stmt = $mysqli->prepare("insert into $key values (?, ?, ?, ?)");
@@ -336,6 +349,7 @@ function update_account_data($email, $pass, $new_data)
         array_push($save_params['values'], $whichProfile);
         $save_stmt->bind_param($save_params['types'], ...$save_params['values']);
         $save_stmt->execute();
+        $save_stmt->close();
     } else if (isset($new_data['1v1']))
     {
         $whichProfile = array_keys($new_data['1v1'])[0][-1];
@@ -344,11 +358,13 @@ function update_account_data($email, $pass, $new_data)
         $save_stmt = $mysqli->prepare($save_query);
         $save_stmt->bind_param('iisi', $new_data['money'], $new_data['levelUnlocked'], $email, $whichProfile);
         $save_stmt->execute();
+        $save_stmt->close();
         if ($save_stmt->affected_rows === 0)
         {
             $save_stmt = $mysqli->prepare('INSERT INTO 1v1 values (?, ?, ?, ?)');
             $save_stmt->bind_param('iiis', $whichProfile, $new_data['money'], $new_data['levelUnlocked'], $email);
             $save_stmt->execute();
+            $save_stmt->close();
         }
     }
     return true;
@@ -360,6 +376,7 @@ function get_1v1($email)
     $versus_stmt = $mysqli->prepare('SELECT money, levelUnlocked, num FROM 1v1 WHERE email=?');
     $versus_stmt->bind_param('s', $email);
     $versus_stmt->execute();
+    $versus_stmt->close();
     while ($result = $versus_stmt->get_result())
     {
         $profile = $result->fetch_assoc();
@@ -378,6 +395,7 @@ function get_avaliable_saveID($email)
     $stmt = $mysqli->prepare('select MAX(saveID) from pokes where email=? && owner=?');
     $stmt->bind_param('si', $email, $profile);
     $stmt->execute();
+    $stmt->close();
     $result = $stmt->get_result();
     $avaliable_id = $result->fetch_array(MYSQLI_NUM)[0];
     if (is_null($avaliable_id))
@@ -422,6 +440,7 @@ function delete_profile($email, $pass, $gamemode, $profile)
 
     }
     $delete_stmt->execute();
+    $delete_stmt->close();
     return true;
 }
 ?>
