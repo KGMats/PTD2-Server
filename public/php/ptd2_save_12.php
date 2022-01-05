@@ -69,16 +69,12 @@ function load_story_profile($email, $pass): string
         $result .= "CS={$profile['CurrentSave']}&";
         $result .= "CT={$profile['CurrentTime']}&";
         $result .= "Gender={$profile['Gender']}&";
-        $result .= "extra={$encoded_data[0]}&";
+        $result .= "extra={$encoded_data[0]}&";  // Items
         $result .= "extra2={$encoded_data[1]}&";
-        $result .= "extra3={$encoded_data[2]}&";
-        $result .= "extra4={$encoded_data[3]}&";
+        $result .= "extra3={$encoded_data[2][0]}";  // Pokemons data
+        $result .= $encoded_data[2][1];  // Pokemon Nicknames
+        $result .= "&extra4={$encoded_data[3]}&";
         $result .= "extra5={$encoded_data[4]}";
-        foreach ($profile['poke'] as $id => $poke)
-        {
-            $tmp = $poke['pos'] + 1;
-            $result .= "&PN{$tmp}={$poke['Nickname']}";
-        }
         $result = 'Result=Success&' . $result;
         return $result;
     }

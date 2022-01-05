@@ -276,9 +276,24 @@ function encode_pokemons($pokemons)
     $NPokes = convertIntToString(count($pokemons));
     $NPokes_len = convertIntToString(strlen($NPokes));
     $encoded_pokes = "$NPokes_len$NPokes";
+    $pokenicks = '';
     $parts = [];
     foreach ($pokemons as $poke)
     {
+            // this is to avoid suspect of hacking
+            // For some reason sometimes the game
+            // sends only the new pos of one poke
+        if (isset($parts[$poke['pos']]))
+        {
+            for ($i=0; $i<count($pokemons); $i++)
+            {
+                if (!isset($parts[$i]))
+                {
+                    $poke['pos'] = $i;
+                    break;
+                }
+            }
+        }
         $num = convertIntToString($poke['num']);
         $num_len = convertIntToString(strlen($num));
         $xp = convertIntToString($poke['xp']);
@@ -310,14 +325,9 @@ function encode_pokemons($pokemons)
         $tag = $poke['tag'];
         $tag_len = convertIntToString(strlen($tag));
 
-        while (isset($parts[$poke['pos']]))
-        {
-            // this is to avoid suspect of hacking
-            // For some reason sometimes the game
-            // sends only the new pos of one poke
+        $tmp = $poke['pos'] + 1;
+        $pokenicks .= "&PN{$tmp}={$poke['Nickname']}";
 
-            $poke['pos']++;
-        }
         $parts[$poke['pos']] = $num_len . $num . $xp_len_len . $xp_len . $xp
            . $lvl_len . $lvl . $move1_len . $move1 . $move2_len . $move2
            . $move3_len . $move3 . $move4_len . $move4 . $tt_len . $tt
@@ -330,7 +340,7 @@ function encode_pokemons($pokemons)
     $encoded_len_len = strlen($encoded_len);
     $final_len = convertIntToString(get_Length($encoded_len_len, $encoded_len));
     $encoded_pokes = $final_len . $encoded_pokes;
-    return $encoded_pokes;
+    return [$encoded_pokes, $pokenicks];
 }
 
 function encode_inventory($items): string
@@ -495,7 +505,7 @@ function encode_story_profile(array $profile): array
 
     $extra4 = encode_inventory($profile['items']);
 
-    $extra5 = convertIntToString(create_Check_Sum($extra3 . $profile['CurrentSave']));
+    $extra5 = convertIntToString(create_Check_Sum($extra3[0] . $profile['CurrentSave']));
     $encoded_data = [$extra, $extra2, $extra3, $extra4, $extra5];
     return $encoded_data;
 }
