@@ -1,14 +1,28 @@
 <?php
 header('Content-Type: application/x-www-form-urlencoded');
 
+if ($_SERVER['REQUEST_METHOD'] != 'POST')
+{
+    exit();
+}
+
 if(isset($_POST['debug']))
 {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 }
 
-require_once '../../MySQL.php';
+require '../../config.php';
 require_once '../../obfuscation.php';
+
+if (STORAGE_METHOD === 'MYSQL')
+{
+    require_once '../../MySQL.php';
+}
+else
+{
+    require_once '../../json.php';
+}
 
 function create_account($email, $pass): string
 {

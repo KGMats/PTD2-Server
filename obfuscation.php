@@ -104,6 +104,7 @@ function decode_pokeinfo(string $encoded_pokeinfo, $email): array
     for ($i = 0; $i < $pokes; $i++)
     {
         $poke = array();
+        $poke['reason'] = array();
         $poke_info_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
         $poke_info_len =  convertStringToInt(substr($encoded_pokeinfo, $pointer, $poke_info_len_len));
         $pointer += $poke_info_len_len;
@@ -265,6 +266,7 @@ function decode_pokeinfo(string $encoded_pokeinfo, $email): array
                 $pointer += $num_len;
                 break;
             }
+            array_push($poke['reason'], $info_type);
         }
         $pokemons[$poke['saveID']] = $poke;
     }
@@ -280,9 +282,9 @@ function encode_pokemons($pokemons)
     $parts = [];
     foreach ($pokemons as $poke)
     {
-            // this is to avoid suspect of hacking
-            // For some reason sometimes the game
-            // sends only the new pos of one poke
+        // this is to avoid suspect of hacking
+        // For some reason sometimes the game
+        // sends only the new pos of one poke
         if (isset($parts[$poke['pos']]))
         {
             for ($i=0; $i<count($pokemons); $i++)
