@@ -203,6 +203,12 @@ function delete_1v1(string $email, string $pass): string
     return 'Result=Success';
 }
 
+function maintenance()
+{
+    echo 'Result=Failure&Reason=maintenance';
+    exit();
+}
+
 $email = $_POST['Email'];
 $pass = $_POST['Pass'];
 

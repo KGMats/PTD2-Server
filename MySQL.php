@@ -1,5 +1,4 @@
 <?php
-
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 if($mysqli->connect_error) {
@@ -25,9 +24,9 @@ function setup_database($mysqli)
 
     $create_pokes = 'CREATE TABLE IF NOT EXISTS pokes(
         owner TINYINT(1) unsigned NOT NULL,
-        Nickname VARCHAR(15) NOT NULL,
+        Nickname VARCHAR(25) NOT NULL,
         num SMALLINT(3) unsigned NOT NULL,
-        saveID MEDIUMINT(7) unsigned NOT NULL,
+        saveID BIGINT(7) unsigned AUTO_INCREMENT,
         xp INT(7) unsigned NOT NULL,
         lvl TINYINT(3) unsigned NOT NULL,
         move1 SMALLINT(3) unsigned NOT NULL,
@@ -41,6 +40,7 @@ function setup_database($mysqli)
         item TINYINT(2) unsigned NOT NULL,
         tag VARCHAR(2) NOT NULL,
         email VARCHAR(50) NOT NULL,
+        PRIMARY KEY (saveID),
         FOREIGN KEY (email) REFERENCES accounts (email)
     );';
 
@@ -57,7 +57,7 @@ function setup_database($mysqli)
         email VARCHAR(50) NOT NULL,
         FOREIGN KEY(email) REFERENCES accounts (email)
     );';
-    
+
     $create_1v1 = 'CREATE TABLE IF NOT EXISTS 1v1(
         num TINYINT(1) unsigned NOT NULL,
         money INT(5) unsigned NOT NULL,
@@ -82,7 +82,7 @@ function setup_database($mysqli)
         FOREIGN KEY (email) REFERENCES accounts (email)
     );';
     $create_tables = $create_accounts
-        . $create_story . $create_pokes 
+        . $create_story . $create_pokes
         . $create_items . $create_extra
         . $create_1v1;
 
@@ -315,102 +315,122 @@ function update_account_data($email, $pass, $new_data)
                     switch ($reason)
                     {
                     case 1: // Captured
+                        $saveID = null; // using null as saveID has AUTO_INCREMENT attribute
                         $pokes_stmt = $mysqli->prepare('INSERT INTO pokes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-                        foreach ($pokemons as $saveID)
+                        $pokes_stmt->bind_param('isiiiiiiiiiiiiiss',
+                            $whichProfile, $Nickname, $num,
+                            $saveID, $xp, $lvl,
+                            $move1, $move2, $move3, $move4,
+                            $targetingType, $gender, $pos,
+                            $extra, $item, $tag, $email,
+                        );
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('isiiiiiiiiiiiiiss',
-                                $whichProfile, $value[$saveID]['Nickname'], $poke['num'],
-                                $saveID, $value[$saveID]['xp'], $poke['lvl'],
-                                $value[$saveID]['move1'], $poke['move2'], $poke['move3'], $poke['move4'],
-                                $value[$saveID]['targetingType'], $poke['gender'], $poke['pos'],
-                                $value[$saveID]['extra'], $poke['item'], $poke['tag'], $email,
-                            );
+                            $Nickname = $value[$ID]['Nickname'];
+                            $num = $value[$ID]['num'];
+                            $xp = $value[$ID]['xp'];
+                            $lvl = $value[$ID]['lvl'];
+                            $move1 = $value[$ID]['move1'];
+                            $move2 = $value[$ID]['move2'];
+                            $move3 = $value[$ID]['move3'];
+                            $move4 = $value[$ID]['move4'];
+                            $targetingType = $value[$ID]['targetingType'];
+                            $gender = $value[$ID]['gender'];
+                            $pos = $value[$ID]['pos'];
+                            $extra = $value[$ID]['extra'];
+                            $item = $value[$ID]['item'];
+                            $tag = $value[$ID]['tag'];
                             $pokes_stmt->execute();
-
                         }
                         break;
                     case 2: // Level up
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET lvl=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET lvl=? WHERE saveID=? AND email=?');
+                        $pokes_stmt->bind_param('iis',
+                            $lvl, $ID, $email);
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('isii',
-                                $value[$saveID]['lvl'], $email, $whichProfile, $saveID);
+                            $lvl = $value[$ID]['lvl'];
                             $pokes_stmt->execute();
                         }
                         break;
                     case 3: // XP up
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET xp=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET xp=? WHERE saveID=? AND email=?');
+                        $pokes_stmt->bind_param('iis',
+                            $xp, $ID, $email);
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('isii',
-                                $value[$saveID]['xp'], $email, $whichProfile, $saveID);
+                            $xp = $value[$ID]['xp'];
                             $pokes_stmt->execute();
                         }
                         break;
                     case 4: // Change moves
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET move1=?, move2=?, move3=?, move4=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET move1=?, move2=?, move3=?, move4=? WHERE saveID=? AND email=?');
+                        $pokes_stmt->bind_param('iiiiis',
+                            $move1,$move2,$move3,$move4,
+                            $ID, $email);
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('iiiisii',
-                                $value[$saveID]['move1'],$poke['move2'],$poke['move3'],$poke['move4'],
-                                $email, $whichProfile, $saveID);
+                            $move1 = $value[$ID]['move1'];
+                            $move2 = $value[$ID]['move2'];
+                            $move3 = $value[$ID]['move3'];
+                            $move4 = $value[$ID]['move4'];
                             $pokes_stmt->execute();
                         }
                         break;
                     case 5: // Change Item
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET item=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET item=? WHERE saveID=? AND email=?');
+                            $pokes_stmt->bind_param('iis',
+                                $item, $ID, $email);
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('isii',
-                                $value[$saveID]['item'],
-                                $email, $whichProfile, $saveID);
+                            $item = $value[$ID]['item'];
                             $pokes_stmt->execute();
                         }
                         break;
                     case 6: // Evolve
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET num=? WHERE email=? AND owner=? AND saveID=?');
-                        $pokes_stmt->bind_param('isii',
-                            $value[$saveid]['num'],
-                            $email, $whichprofile, $saveid);
-                        $pokes_stmt->execute();
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET num=? WHERE saveID=? AND email=?');
+                        $pokes_stmt->bind_param('iis',
+                            $num, $ID, $email);
+                        foreach ($pokemons as $ID)
+                        {
+                            $num = $value[$ID]['num'];
+                            $pokes_stmt->execute();
+                        }
                         break;
                     case 7: // Change Nickname
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET Nickname=?, WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveid)
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET Nickname=? WHERE saveID=? AND email=?');
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('ssii',
-                                $value[$saveid]['Nickname'],
-                                $email, $whichprofile, $saveid);
+                            $pokes_stmt->bind_param('sis',
+                            $value[$ID]['Nickname'], $ID, $email);
                             $pokes_stmt->execute();
                         }
                         break;
-                    case 8: // Change Pos
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET pos=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                    case 8: // Pos change
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET pos=? WHERE saveID=? AND email=?');
+                        $pokes_stmt->bind_param('iis',
+                            $pos, $ID, $email);
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('isii',
-                                $value[$saveID]['pos'],
-                                $email, $whichProfile, $saveID);
+                            $pos = $value[$ID]['pos'];
                             $pokes_stmt->execute();
                         }
                         break;
-                    case 9:
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET tag=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                    case 9: // Need Tag
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET tag=? WHERE saveID=? AND email=?');
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('ssii',
-                                $value[$saveID]['tag'],
-                                $email, $whichProfile, $saveID);
+                            $pokes_stmt->bind_param('sis',
+                                $value[$ID]['tag'], $ID, $email);
                             $pokes_stmt->execute();
                         }
                         break;
-                    case 10:
-                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET num=? WHERE email=? AND owner=? AND saveID=?');
-                        foreach ($pokemons as $saveID)
+                    case 10: // Need Trade
+                        $pokes_stmt = $mysqli->prepare('UPDATE pokes SET num=? WHERE saveID=? AND email=?');
+                        foreach ($pokemons as $ID)
                         {
-                            $pokes_stmt->bind_param('isii',
-                                $value[$saveID]['pos'],
-                                $email, $whichProfile, $saveID);
+                            $pokes_stmt->bind_param('iis',
+                                $value[$ID]['num'], $ID, $email);
                             $pokes_stmt->execute();
                         }
                         break;
@@ -447,9 +467,9 @@ function update_account_data($email, $pass, $new_data)
         $save_stmt->execute();
         preg_match('!\d+!', $mysqli->info, $matched_rows);
         $matched_rows = $matched_rows[0];
-        if (matched_rows == 0)
+        if ($matched_rows == 0)
         {
-            $save_stmt = $mysqli->prepare('INSERT INTO 1v1 values (?, ?, ?, ?');
+            $save_stmt = $mysqli->prepare('INSERT INTO 1v1 values (?, ?, ?, ?);');
             $save_stmt->bind_param('iiis', $whichProfile, $new_data['money'], $new_data['levelUnlocked'], $email);
             $save_stmt->execute();
         }
@@ -477,23 +497,9 @@ function get_1v1($email)
     return $profiles;
 }
 
-function get_avaliable_saveID($email)
-{
-    global $mysqli;
-    $profile = $_POST['whichProfile'];
-    $stmt = $mysqli->prepare('select MAX(saveID) from pokes where email=? && owner=?');
-    $stmt->bind_param('si', $email, $profile);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    $avaliable_id = $result->fetch_array(MYSQLI_NUM)[0];
-    if (is_null($avaliable_id))
-    {
-        $avaliable_id = 1;
-    } else {
-        $avaliable_id++;
-    }
-    return $avaliable_id;
+function get_avaliable_saveID($email): int {
+    // MySQL ignores the save ID as the saveID collum has AUTO_INCREMENT attribute
+    return 0;
 }
 
 function delete_profile($email, $pass, $gamemode, $profile)

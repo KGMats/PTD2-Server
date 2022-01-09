@@ -475,9 +475,10 @@ function encode_story(array $story_data): string
         }
     }
     $PA = convertIntToString($PA);
+    $encoded_data .= $PA;
     $data_len = strlen($encoded_data);
     $data_len_len = strlen($data_len);
-    $encoded_len = convertIntToString(get_Length($data_len_len, $data_len) + 1);
+    $encoded_len = convertIntToString(get_Length($data_len_len, $data_len));
 
     $encoded_data = $encoded_len . $PA . $encoded_data;
 
