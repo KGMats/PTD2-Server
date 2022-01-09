@@ -12,7 +12,7 @@ function account_exists($email): bool
     return false;
 }
 
-function autenticate_account($email, $pass): bool
+function authenticate_account($email, $pass): bool
 {
     $accounts = get_accounts();
     foreach ($accounts as $account)

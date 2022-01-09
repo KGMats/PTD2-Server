@@ -117,7 +117,7 @@ function create_new_account(array $account): void
     $stmt->close();
 }
 
-function autenticate_account(string $email, string $pass): bool
+function authenticate_account(string $email, string $pass): bool
 {
     global $mysqli;
     $stmt = $mysqli->prepare('SELECT pass FROM accounts WHERE email=?');
@@ -163,7 +163,7 @@ function get_story($email, $pass)
             $extra_stmt->close();
             while ($extra_row = $extra_result->fetch_assoc())
             {
-                array_push($extra, $extra_row);
+                $extra[$extra_row['num']] = $extra_row['value'];
             }
             $account["profile{$row['num']}"] = [
                 'Nickname' => $row['Nickname'],
@@ -231,7 +231,7 @@ function get_story_profile($email, $whichProfile)
 function update_account_data($email, $pass, $new_data)
 {
     global $mysqli;
-    if (!autenticate_account($email, $pass))
+    if (!authenticate_account($email, $pass))
     {
         return false;
     }
@@ -485,9 +485,9 @@ function get_1v1($email)
     $versus_stmt = $mysqli->prepare('SELECT money, levelUnlocked, num FROM 1v1 WHERE email=?');
     $versus_stmt->bind_param('s', $email);
     $versus_stmt->execute();
-    while ($result = $versus_stmt->get_result())
+    $result = $versus_stmt->get_result();
+    while ($profile = $result->fetch_assoc())
     {
-        $profile = $result->fetch_assoc();
         if ($profile)
         {
             $profiles["profile{$profile['num']}"] = $profile;
@@ -511,7 +511,7 @@ function get_avaliable_saveID($email): int {
 
 function delete_profile($email, $pass, $gamemode, $profile)
 {
-    if (!autenticate_account($email, $pass))
+    if (!authenticate_account($email, $pass))
     {
         return false;
     }

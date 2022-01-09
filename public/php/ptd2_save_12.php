@@ -37,7 +37,7 @@ function create_account($email, $pass): string
 
 function load_account($email, $pass): string
 {
-    if (autenticate_account($email, $pass))
+    if (authenticate_account($email, $pass))
     {
         return 'Result=Success&Reason=loadedAccount&p=1'; // Trainer pass for everyone!
     }
@@ -155,6 +155,11 @@ function save_story($email, $pass): string
             echo "PID{$poke['needSaveID']}={$poke['saveID']}&";
             unset($poke['needSaveID']);
         }
+    }
+    if (isset($poke['needSaveID']))
+    {
+        echo "PID{$poke['needSaveID']}={$poke['saveID']}&";
+        unset($poke['needSaveID']);
     }
 
     $items = decode_inventory($_POST['extra4']);
