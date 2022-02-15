@@ -150,6 +150,11 @@ function save_story($email, $pass): string
             $pokes[$key]['Nickname'] = $nickname;
             unset($pokes[$key]['needNickname']);
         }
+        if (isset($poke['needSaveID']))
+        {
+            echo "PID{$poke['needSaveID']}={$poke['saveID']}&";
+            unset($poke['needSaveID']);
+        }
     }
 
     $items = decode_inventory($_POST['extra4']);

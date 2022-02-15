@@ -498,8 +498,15 @@ function get_1v1($email)
 }
 
 function get_avaliable_saveID($email): int {
-    // MySQL ignores the save ID as the saveID collum has AUTO_INCREMENT attribute
-    return 0;
+    global $mysqli;
+    $db_name = DB_NAME;
+    $stmt = $mysqli->prepare('SELECT AUTO_INCREMENT FROM information_schema.tables WHERE table_name="pokes" AND table_schema=?');
+    $stmt->bind_param('s', $db_name);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+    $AvaliableSaveID = $result->fetch_array()[0];
+    return $AvaliableSaveID;
 }
 
 function delete_profile($email, $pass, $gamemode, $profile)

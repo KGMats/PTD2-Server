@@ -1,5 +1,14 @@
 <?php
 
+if (STORAGE_METHOD === 'MYSQL')
+{
+    require_once '../../MySQL.php';
+}
+else
+{
+    require_once '../../json.php';
+}
+
 const letterList = ['m', 'y', 'w', 'c', 'q', 'a', 'p', 'r', 'e', 'o'];
 
 function convertToString(int $param1): string
@@ -196,6 +205,8 @@ function decode_pokeinfo(string $encoded_pokeinfo, $email): array
                 $tag = substr($encoded_pokeinfo, $pointer, $tag_len);
                 $poke['tag'] = $tag;
                 $pointer += $tag_len;
+
+                $poke['needSaveID'] = $poke['pos'];
                 break;
             case 2: // Level up
                 $lvl_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
