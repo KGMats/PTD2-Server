@@ -81,10 +81,15 @@ function setup_database($mysqli)
         owner TINYINT(1) unsigned NOT NULL,
         FOREIGN KEY (email) REFERENCES accounts (email)
     );';
+    $create_gym = 'CREATE TABLE IF NOT EXISTS gym_challenges(
+        beaten TINYINT(2) unsigned NOT NULL,
+        email VARCHAR(50) NOT NULL,
+        FOREIGN KEY (email) REFERENCES accounts (email)
+    );';
     $create_tables = $create_accounts
         . $create_story . $create_pokes
         . $create_items . $create_extra
-        . $create_1v1;
+        . $create_1v1 . $create_gym;
 
     $mysqli->multi_query($create_tables);
     while ($mysqli->next_result())
@@ -474,6 +479,23 @@ function update_account_data($email, $pass, $new_data)
             $save_stmt->execute();
         }
         $save_stmt->close();
+    } else if (isset($new_data['gym_challenges']))
+    {
+        $save_query = 'UPDATE gym_challenges SET beaten=? where email=?';
+        $save_stmt = $mysqli->prepare($save_query);
+        $save_stmt->bind_param('is', $new_data['gym_challenges'], $email);
+        $save_stmt->execute();
+        preg_match('!\d+!', $mysqli->info, $matched_rows);
+        $matched_rows = $matched_rows[0];
+        $save_stmt->close();
+        if ($matched_rows == 0)
+        {
+            $save_stmt = $mysqli->prepare('INSERT INTO gym_challenges values (?, ?);');
+            $save_stmt->bind_param('is', $new_data['gym_challenges'], $email);
+            $save_stmt->execute();
+            $save_stmt->close();
+        }
+
     }
     return true;
 }
@@ -544,5 +566,26 @@ function delete_profile($email, $pass, $gamemode, $profile)
     $delete_stmt->execute();
     $delete_stmt->close();
     return true;
+}
+
+function get_gym($email)
+{
+    global $mysqli;
+    $profiles = array();
+    $gym_stmt = $mysqli->prepare('SELECT beaten FROM gym_challenges WHERE email=?');
+    $gym_stmt->bind_param('s', $email);
+    $gym_stmt->execute();
+    $result = $gym_stmt->get_result();
+    $row = $result->fetch_assoc();
+
+
+    $beaten = 0;
+    if (isset($row['beaten']))
+    {
+        $beaten = $row['beaten'];
+    }
+
+    $gym_stmt->close();
+    return $beaten;
 }
 ?>

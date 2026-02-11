@@ -40,7 +40,7 @@ function get_account($email, $pass)
 
 function get_accounts(): array
 {
-    $accounts_file = '../../accounts.json';
+    $accounts_file = JSON_ACCOUNTS_FILE;
     $accounts = array();
     if (file_exists($accounts_file))
     {
@@ -59,7 +59,7 @@ function update_account_data($email, $pass, $new_data): bool
         {
             $accounts[$index] = array_replace_recursive($accounts[$index], $new_data);
             $data = json_encode($accounts);
-            file_put_contents('../../accounts.json', $data);
+            file_put_contents(JSON_ACCOUNTS_FILE, $data);
             return true;
         }
     }
@@ -75,7 +75,7 @@ function delete_profile($email, $pass, $game_mode, $profile): bool
         {
             unset($accounts[$index][$game_mode][$profile]);
             $data = json_encode($accounts);
-            file_put_contents('../../accounts.json', $data);
+            file_put_contents(JSON_ACCOUNTS_FILE, $data);
             return true;
         }
     }
@@ -87,7 +87,7 @@ function create_new_account($account)
     $accounts = get_accounts();
     array_push($accounts, $account);
     $data = json_encode($accounts);
-    file_put_contents('../../accounts.json', $data);
+    file_put_contents(JSON_ACCOUNTS_FILE, $data);
 }
 
 function get_1v1($email)
@@ -118,4 +118,11 @@ function get_avaliable_saveID($email)
     }
     return 1;
 }
+
+function get_gym($email)
+{
+    $account = get_account($email, $_POST['Pass']);
+    return $account['gym_challenges'];
+}
+
 ?>

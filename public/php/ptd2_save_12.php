@@ -13,15 +13,15 @@ if(isset($_POST['debug']))
 }
 
 require '../../config.php';
-require_once '../../obfuscation.php';
+require_once ROOT_DIR . '/obfuscation.php';
 
 if (STORAGE_METHOD === 'MYSQL')
 {
-    require_once '../../MySQL.php';
+    require_once ROOT_DIR . '/MySQL.php';
 }
 else
 {
-    require_once '../../json.php';
+    require_once ROOT_DIR . '/json.php';
 }
 
 function create_account($email, $pass): string

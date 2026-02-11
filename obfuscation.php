@@ -2,12 +2,13 @@
 
 if (STORAGE_METHOD === 'MYSQL')
 {
-    require_once '../../MySQL.php';
+    require_once ROOT_DIR . '/MySQL.php';
 }
 else
 {
-    require_once '../../json.php';
+    require_once ROOT_DIR . '/json.php';
 }
+
 
 const letterList = ['m', 'y', 'w', 'c', 'q', 'a', 'p', 'r', 'e', 'o'];
 
@@ -559,5 +560,41 @@ function get_badges(array $extra): int
         }
     }
     return $badges;
+}
+
+
+
+function decode_gym(string $encoded_data): int
+{
+    $data = array();
+    $index = 0;
+
+    $header_length = convertStringToInt($encoded_data[$index++]);
+    $content_length = convertStringToInt(substr($encoded_data, $index, $header_length));
+    $index += $header_length;
+
+
+    $gym_beaten_length = convertStringToInt($encoded_data[$index++]);
+    $gym_beaten = convertStringToInt(substr($encoded_data, $index, $gym_beaten_length));
+    
+    return $gym_beaten;
+}
+
+function encode_gym(int $gym_beaten): string
+{
+    $encoded_data = '';
+
+    $encoded_beaten = convertIntToString($gym_beaten);
+    $beaten_len = convertIntToString(strlen($encoded_beaten));
+    $beaten_len_len = convertIntToString(strlen($beaten_len));
+
+    $encoded_data = $beaten_len_len . $beaten_len . $encoded_beaten;
+    $data_len = strlen($encoded_data);
+    $data_len_len = strlen($data_len);
+    $encoded_len = convertIntToString(get_Length($data_len_len, $data_len));
+
+    $encoded_data = $encoded_len . $encoded_data;
+
+    return $encoded_data;
 }
 ?>

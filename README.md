@@ -1,7 +1,7 @@
 # Goals
 - [x] Make Story mode playable
 - [x] Make 1v1 mode playable
-- [ ] Make Gym Challenges playable
+- [x] Make Gym Challenges playable
 - [ ] Implement Mystery gifts
 - [ ] Recreate pokecenter
 - [ ] Implement multiplayer (Trainer VS)
