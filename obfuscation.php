@@ -103,7 +103,7 @@ function create_Check_Sum(string $encoded_info)
 function decode_pokeinfo(string $encoded_pokeinfo, $email): array
 {
     $pokemons = array();
-    $AvaliableSaveID = get_avaliable_saveID($email);
+    $AvaliableSaveID = get_available_saveID($email);
     $pointer = 0;
     $data_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
     $pointer += $data_len_len;
@@ -597,4 +597,149 @@ function encode_gym(int $gym_beaten): string
 
     return $encoded_data;
 }
+
+function decode_trainervs_pokeinfo(string $encoded_data): array
+{
+    $data = array();
+    $index = 0;
+
+    $header_length = convertStringToInt($encoded_data[$index++]);
+    $content_length = convertStringToInt(substr($encoded_data, $index, $header_length));
+    $index += $header_length;
+
+    for ($i = 0; $i < 3; $i++)
+    {
+        $poke = array();
+        $num_len = convertStringToInt($encoded_data[$index++]);
+        $poke['num'] = convertStringToInt(substr($encoded_data, $index, $num_len));
+        $index += $num_len;
+
+        $lvl_len = convertStringToInt($encoded_data[$index++]);
+        $poke['lvl'] = convertStringToInt(substr($encoded_data, $index, $lvl_len));
+        $index += $lvl_len;
+
+        for ($j = 1; $j <= 4; $j++)
+        {
+            $move_len = convertStringToInt($encoded_data[$index++]);
+            $poke["move$j"] = convertStringToInt(substr($encoded_data, $index, $move_len));
+            $index += $move_len;
+        }
+
+        $gender_len = convertStringToInt($encoded_data[$index++]);
+        $poke['gender'] = convertStringToInt(substr($encoded_data, $index, $gender_len));
+        $index += $gender_len;
+
+        $item_len = convertStringToInt($encoded_data[$index++]);
+        $poke['item'] = convertStringToInt(substr($encoded_data, $index, $item_len));
+        $index += $item_len;
+
+        $extra_len = convertStringToInt($encoded_data[$index++]);
+        $poke['extra'] = convertStringToInt(substr($encoded_data, $index, $extra_len));
+        $index += $extra_len;
+
+        // Selected ability
+        $ability_len = convertStringToInt($encoded_data[$index++]);
+        $poke['selected_ability'] = convertStringToInt(substr($encoded_data, $index, $ability_len));
+        $index += $ability_len;
+
+        $index += 2;
+
+        $data[$i] = $poke;
+    }
+
+    return $data;
+}
+
+function encode_trainervs_profile($profile)
+{
+    $encoded_profile = '';
+
+    foreach ($profile['poke'] as $poke)
+    {
+        $num = convertIntToString($poke['num']);
+        $num_len = convertIntToString(strlen($num));
+        $lvl = convertIntToString($poke['lvl']);
+        $lvl_len = convertIntToString(strlen($lvl));
+        $move1 = convertIntToString($poke['move1']);
+        $move1_len = convertIntToString(strlen($move1));
+        $move2 = convertIntToString($poke['move2']);
+        $move2_len = convertIntToString(strlen($move2));
+        $move3 = convertIntToString($poke['move3']);
+        $move3_len = convertIntToString(strlen($move3));
+        $move4 = convertIntToString($poke['move4']);
+        $move4_len = convertIntToString(strlen($move4));
+        $gender = convertIntToString($poke['gender']);
+        $gender_len = convertIntToString(strlen($gender));
+        $extra = convertIntToString($poke['extra']);
+        $extra_len = convertIntToString(strlen($extra));
+        $item = convertIntToString($poke['item']);
+        $item_len = convertIntToString(strlen($item));
+        $ability = convertIntToString($poke['selected_ability']);
+        $ability_len = convertIntToString(strlen($ability));
+
+
+
+        $encoded_profile .= $num_len . $num . $lvl_len . $lvl
+            . $gender_len . $gender . $extra_len . $extra 
+            . $move1_len . $move1 . $move2_len . $move2
+            . $move3_len . $move3 . $move4_len . $move4 
+            . $ability_len . $ability . 'yy'. $item_len . $item
+            ;
+        
+    }
+
+
+    $wins = convertIntToString($profile['wins']);
+    $wins_len = convertIntToString(strlen($wins));
+    $avatar = convertIntToString($profile['avatar']);
+    $avatar_len = convertIntToString(strlen($avatar));
+    $trainerID = convertIntToString($profile['ID']);
+    $trainerID_len = convertIntToString(strlen($trainerID));
+
+
+    $encoded_profile .= $wins_len . $wins
+        . $avatar_len . $avatar
+        . $trainerID_len . $trainerID;
+
+
+
+    $encoded_len = strlen($encoded_profile);
+    $encoded_len_len = strlen($encoded_len);
+    $header = convertIntToString(get_Length($encoded_len_len, $encoded_len));
+    $encoded_profile = $header . $encoded_profile;
+
+    return $encoded_profile;
+}
+
+function decode_trainervs_misc($encoded_data)
+{
+    $data = array();
+    $index = 0;
+
+    $header_length = convertStringToInt($encoded_data[$index++]);
+    $content_length = convertStringToInt(substr($encoded_data, $index, $header_length));
+    $index += $header_length;
+
+    $wins_len_len = convertStringToInt($encoded_data[$index++]);
+    $wins_len = convertStringToInt(substr($encoded_data, $index, $wins_len_len));
+    $index += $wins_len_len;
+
+    $data['wins'] = convertStringToInt(substr($encoded_data, $index, $wins_len));
+    $index += $wins_len;
+
+    $loses_len_len = convertStringToInt($encoded_data[$index++]);
+    $loses_len = convertStringToInt(substr($encoded_data, $index, $loses_len_len));
+    $index += $loses_len_len;
+
+    $data['loses'] = convertStringToInt(substr($encoded_data, $index, $loses_len));
+    $index += $loses_len;
+
+    $avatar_len = convertStringToInt($encoded_data[$index++]);
+    $data['avatar'] = convertStringToInt(substr($encoded_data, $index, $avatar_len));
+    $index += $avatar_len;
+
+    return $data;
+}
+
+
 ?>

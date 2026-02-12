@@ -40,11 +40,10 @@ function get_account($email, $pass)
 
 function get_accounts(): array
 {
-    $accounts_file = JSON_ACCOUNTS_FILE;
     $accounts = array();
-    if (file_exists($accounts_file))
+    if (file_exists(JSON_ACCOUNTS_FILE))
     {
-        $content = file_get_contents($accounts_file);
+        $content = file_get_contents(JSON_ACCOUNTS_FILE);
         $accounts = json_decode($content, true);
     }
     return $accounts;
@@ -108,7 +107,7 @@ function get_story_profile($email, $profile)
     return $story["profile{$profile}"];
 }
 
-function get_avaliable_saveID($email)
+function get_available_saveID($email)
 {
     $whichProfile = $_POST['whichProfile'];
     $profile = get_story_profile($email, $whichProfile);
@@ -122,7 +121,34 @@ function get_avaliable_saveID($email)
 function get_gym($email)
 {
     $account = get_account($email, $_POST['Pass']);
-    return $account['gym_challenges'];
+    if (isset($account['gym_challenges']))
+    {
+        return $account['gym_challenges'];
+    }
+    return 0;
 }
 
+function get_trainerVS($email, $pass)
+{
+    $account = get_account($email, $pass);
+    return $account['trainerVS'];
+}
+
+function get_trainerVS_opponent()
+{
+    $accounts = get_accounts();
+    $trainerVS_profiles = array();
+
+    foreach ($accounts as $account)
+    {
+        if (isset($account['trainerVS']))
+        {
+            $trainerVS_profiles[] = $account['trainerVS'];
+        }
+    }
+
+    $index = array_rand($trainerVS_profiles);
+    $trainerVS_profiles[$index]['ID'] = $index;
+    return $trainerVS_profiles[$index];
+}
 ?>

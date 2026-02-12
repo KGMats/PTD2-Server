@@ -86,10 +86,40 @@ function setup_database($mysqli)
         email VARCHAR(50) NOT NULL,
         FOREIGN KEY (email) REFERENCES accounts (email)
     );';
+
+    $create_vs_profile = 'CREATE TABLE IF NOT EXISTS trainer_vs_profiles(
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(50) NOT NULL,
+        nickname VARCHAR(50) NOT NULL,
+        avatar TINYINT(1) NOT NULL,
+        wins INT UNSIGNED NOT NULL DEFAULT 0,
+        loses INT UNSIGNED NOT NULL DEFAULT 0,
+        UNIQUE KEY (email),
+        FOREIGN KEY (email) REFERENCES accounts (email) ON DELETE CASCADE
+    );';
+
+    $create_vs_team = 'CREATE TABLE IF NOT EXISTS trainer_vs_teams(
+        email VARCHAR(50) NOT NULL,
+        slot_index TINYINT UNSIGNED NOT NULL,
+        num SMALLINT UNSIGNED NOT NULL,
+        lvl TINYINT UNSIGNED NOT NULL,
+        move1 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        move2 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        move3 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        move4 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        gender TINYINT UNSIGNED,
+        item TINYINT UNSIGNED,
+        ability TINYINT UNSIGNED,
+        extra TINYINT UNSIGNED,
+        PRIMARY KEY (email, slot_index), 
+        FOREIGN KEY (email) REFERENCES accounts (email) ON DELETE CASCADE
+    );';
+
     $create_tables = $create_accounts
         . $create_story . $create_pokes
         . $create_items . $create_extra
-        . $create_1v1 . $create_gym;
+        . $create_1v1 . $create_gym
+        . $create_vs_profile . $create_vs_team;
 
     $mysqli->multi_query($create_tables);
     while ($mysqli->next_result())
@@ -496,7 +526,11 @@ function update_account_data($email, $pass, $new_data)
             $save_stmt->close();
         }
 
+    } else if (isset($new_data['trainerVS']))
+    {
+        return update_trainer_vs($email, $new_data['trainerVS']);
     }
+
     return true;
 }
 
@@ -519,7 +553,7 @@ function get_1v1($email)
     return $profiles;
 }
 
-function get_avaliable_saveID($email): int {
+function get_available_saveID($email): int {
     global $mysqli;
     $db_name = DB_NAME;
     $stmt = $mysqli->prepare('SELECT AUTO_INCREMENT FROM information_schema.tables WHERE table_name="pokes" AND table_schema=?');
@@ -588,4 +622,187 @@ function get_gym($email)
     $gym_stmt->close();
     return $beaten;
 }
+
+function update_trainer_vs($email, $new_data) {
+    global $mysqli;
+
+    $stmt = $mysqli->prepare("
+        INSERT INTO trainer_vs_profiles (email, nickname, avatar, wins, loses) 
+        VALUES (?, ?, ?, ?, ?) 
+        ON DUPLICATE KEY UPDATE 
+            nickname = VALUES(nickname), 
+            avatar = VALUES(avatar), 
+            wins = VALUES(wins), 
+            loses = VALUES(loses)
+    ");
+    
+    $stmt->bind_param('ssiii',
+        $email, 
+        $new_data['Nickname'],
+        $new_data['avatar'],
+        $new_data['wins'],
+        $new_data['loses'],
+    );
+    $stmt->execute();
+    $stmt->close();
+
+    if (isset($new_data['poke']) && is_array($new_data['poke'])) {
+        $mysqli->begin_transaction();
+        
+        try {
+            $stmt = $mysqli->prepare("
+                INSERT INTO trainer_vs_teams 
+                (email, slot_index, num, lvl, move1, move2, move3, move4, gender, item, ability, extra)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    num = VALUES(num), 
+                    move1 = VALUES(move1), 
+                    move2 = VALUES(move2), 
+                    move3 = VALUES(move3), 
+                    move4 = VALUES(move4), 
+                    gender = VALUES(gender), 
+                    item = VALUES(item), 
+                    ability = VALUES(ability), 
+                    extra = VALUES(extra)
+            ");
+
+            for ($i = 0; $i < 3; $i++) {
+                if (!isset($new_data['poke'][$i]))
+                {
+                    continue; 
+                }
+
+                $poke = $new_data['poke'][$i];
+                $ability = $poke['selected_ability'] ?? 0;
+
+                $stmt->bind_param('siiiiiiiiiii', 
+                    $email, 
+                    $i, // The Slot Index (0, 1, 2)
+                    $poke['num'], 
+                    $poke['lvl'], 
+                    $poke['move1'], 
+                    $poke['move2'], 
+                    $poke['move3'], 
+                    $poke['move4'], 
+                    $poke['gender'], 
+                    $poke['item'], 
+                    $ability,
+                    $poke['extra']
+                );
+                $stmt->execute();
+            }
+            $stmt->close();
+            $mysqli->commit();
+            return true;
+        } catch (Exception $e)
+        {
+            $mysqli->rollback();
+            return false;
+        }
+    }
+    return true;
+}
+
+function get_trainerVS($email, $pass)
+{
+    global $mysqli;
+
+    if (!authenticate_account($email, $pass))
+    {
+        return null;
+    }
+
+    $stmt = $mysqli->prepare("SELECT nickname, avatar, wins, loses FROM trainer_vs_profiles WHERE email = ?");
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($row)
+    {
+        return [
+            'Nickname' => $row['nickname'],
+            'avatar'   => $row['avatar'],
+            'wins'     => $row['wins'],
+            'loses'    => $row['loses']
+        ];
+    }
+
+    return null;
+}
+
+function get_trainerVS_opponent()
+{
+    global $mysqli;
+
+    $max_stmt = $mysqli->query("SELECT MAX(id) as max_id FROM trainer_vs_profiles");
+    $max_row = $max_stmt->fetch_assoc();
+    $max_id = $max_row['max_id'];
+
+    if (!$max_id) {
+        return null; // Table is empty
+    }
+
+    $random_lookup = mt_rand(1, $max_id);
+
+    $stmt = $mysqli->prepare("
+        SELECT email, nickname, wins, loses, avatar, id FROM trainer_vs_profiles
+        WHERE id >= ? 
+        ORDER BY id ASC 
+        LIMIT 1
+    ");
+    
+    $stmt->bind_param('i', $random_lookup);
+    $stmt->execute();
+    $profile_result = $stmt->get_result();
+    $profile = $profile_result->fetch_assoc();
+    
+    // EDGE CASE: If we rolled the very last ID and that user was deleted,
+    // we might get nothing. In that unlikely case, just grab the first user.
+    if (!$profile) {
+        $profile_result = $mysqli->query("
+        SELECT email, nickname, wins, loses, avatar, id FROM trainer_vs_profiles 
+            LIMIT 1");
+        $profile = $profile_result->fetch_assoc();
+    }
+    
+    $stmt->close();
+
+    $stmt = $mysqli->prepare("
+        SELECT num, lvl, move1, move2, move3, move4,
+               gender, extra, item, ability
+        FROM trainer_vs_teams 
+        WHERE email = ? ORDER BY slot_index ASC");
+    $stmt->bind_param('s', $profile['email']);
+    $stmt->execute();
+    $team_result = $stmt->get_result();
+    
+    $pokes = [];
+    while ($row = $team_result->fetch_assoc()) {
+        $pokes[] = [
+            'num' => $row['num'],
+            'lvl' => $row['lvl'],
+            'move1' => $row['move1'],
+            'move2' => $row['move2'],
+            'move3' => $row['move3'],
+            'move4' => $row['move4'],
+            'gender' => $row['gender'],
+            'extra' => $row['extra'],
+            'item' => $row['item'],
+            'selected_ability' => $row['ability']
+        ];
+    }
+    $stmt->close();
+
+    return [
+        'Nickname' => $profile['nickname'],
+        'wins' => $profile['wins'],
+        'loses' => $profile['loses'],
+        'avatar' => $profile['avatar'],
+        'ID' => $profile['id'],
+        'poke' => $pokes
+    ];
+}
+
 ?>

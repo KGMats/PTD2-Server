@@ -4,7 +4,7 @@
 - [x] Make Gym Challenges playable
 - [ ] Implement Mystery gifts
 - [ ] Recreate pokecenter
-- [ ] Implement multiplayer (Trainer VS)
+- [x] Implement multiplayer (Trainer VS)
 - [x] Implement MySQL-based saves
 
 # How to host my own PTD2 server?
