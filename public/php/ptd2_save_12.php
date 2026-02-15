@@ -13,6 +13,12 @@ if(isset($_POST['debug']))
 }
 
 require '../../config.php';
+
+if (UNDER_MAINTENANCE)
+{
+    maintenance();
+}
+
 require_once ROOT_DIR . '/obfuscation.php';
 
 if (STORAGE_METHOD === 'MYSQL')
