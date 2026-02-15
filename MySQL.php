@@ -656,6 +656,7 @@ function update_trainer_vs($email, $new_data) {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     num = VALUES(num), 
+                    lvl = VALUES(lvl),
                     move1 = VALUES(move1), 
                     move2 = VALUES(move2), 
                     move3 = VALUES(move3), 
