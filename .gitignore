@@ -478,3 +478,4 @@ composer.lock
 ##### MISC
 accounts.json
 *.sql
+.env
