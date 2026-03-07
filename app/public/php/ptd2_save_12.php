@@ -150,7 +150,10 @@ function save_story($email, $pass): string
         }
     }
 
-    $pokes = decode_pokeinfo($_POST['extra3'], $email);
+
+    $whichProfile = $_POST['whichProfile'];
+
+    $pokes = decode_pokeinfo($_POST['extra3'], $email, $whichProfile);
     foreach ($pokes as $key => $poke)
     {
         if (isset($poke['needNickname']))
@@ -175,9 +178,9 @@ function save_story($email, $pass): string
     $items = decode_inventory($_POST['extra4']);
     $extra = decode_extra($_POST['extra2']);
 
-    $new_data['story']["profile{$_POST["whichProfile"]}"]['poke'] = $pokes;
-    $new_data['story']["profile{$_POST["whichProfile"]}"]['extra'] = $extra;
-    $new_data['story']["profile{$_POST["whichProfile"]}"]['items'] = $items;
+    $new_data['story']["profile${whichProfile}"]['poke'] = $pokes;
+    $new_data['story']["profile${whichProfile}"]['extra'] = $extra;
+    $new_data['story']["profile${whichProfile}"]['items'] = $items;
     if (update_account_data($email, $pass, $new_data))
     {
         return 'Result=Success';

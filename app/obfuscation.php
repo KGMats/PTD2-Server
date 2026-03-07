@@ -100,10 +100,10 @@ function create_Check_Sum(string $encoded_info)
     return $checksum * 3;
 }
 
-function decode_pokeinfo(string $encoded_pokeinfo, $email): array
+function decode_pokeinfo(string $encoded_pokeinfo, $email, $whichProfile): array
 {
     $pokemons = array();
-    $AvaliableSaveID = get_available_saveID($email);
+    $AvaliableSaveID = get_available_saveID($email, $whichProfile);
     $pointer = 0;
     $data_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
     $pointer += $data_len_len;
@@ -419,6 +419,10 @@ function decode_extra(string $encoded_extra): array
 function decode_1v1(string $encoded_data): array
 {
     $data = array();
+    if ($encoded_data == 'ycm')
+    {
+        return $data;
+    }
 
     // Getting the size of data
     $tmp1 = 0;

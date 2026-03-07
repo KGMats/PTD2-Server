@@ -553,7 +553,7 @@ function get_1v1($email)
     return $profiles;
 }
 
-function get_available_saveID($email): int {
+function get_available_saveID($email, $whichProfile): int {
     global $mysqli;
     $db_name = DB_NAME;
     $stmt = $mysqli->prepare('SELECT AUTO_INCREMENT FROM information_schema.tables WHERE table_name="pokes" AND table_schema=?');

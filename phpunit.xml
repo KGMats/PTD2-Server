@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    displayDetailsOnTestsThatTriggerDeprecations="true"
+    displayDetailsOnTestsThatTriggerErrors="true"
+    displayDetailsOnTestsThatTriggerWarnings="true"
+    cacheDirectory=".phpunit.cache"
+    backupGlobals="false"
+    backupStaticProperties="false"
+    beStrictAboutTestsThatDoNotTestAnything="true"
+    failOnDeprecation="false"
+    failOnRisky="true"
+    failOnWarning="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <!--
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        -->
+    </testsuites>
+
+    <!--
+        Coverage: only collect on actual logic files (not endpoints)
+        Exclude save handlers because they are not testable in unit style
+    -->
+    <source>
+        <include>
+            <directory suffix=".php">app</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">app/public</directory>
+        </exclude>
+    </source>
+
+    <!--
+        Environment overrides — very important for your project!
+        Force JSON mode so tests don't try to connect to real MySQL
+    -->
+    <php>
+        <env name="STORAGE_METHOD" value="JSON"/>
+        <!-- If you ever want real DB in integration tests, override in that suite -->
+        <!-- <env name="DB_HOST" value="127.0.0.1"/> etc. -->
+    </php>
+
+    <!-- Optional: logging (create reports/ folder) -->
+    <logging>
+        <junit outputFile="reports/phpunit.junit.xml"/>
+        <!-- <coverage-html outputDirectory="reports/coverage"/>  (needs Xdebug/PCOV) -->
+    </logging>
+
+</phpunit>

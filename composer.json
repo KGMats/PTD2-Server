@@ -1,0 +1,30 @@
+{
+    "name": "kgmats/ptd2-server",
+    "description": "Open-source reverse-engineered server for Pokemon Tower Defense 2",
+    "license": "AGPL-3.0",
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "files": [
+            "app/config.php",
+            "app/obfuscation.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PTD2\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-text"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

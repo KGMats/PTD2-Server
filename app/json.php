@@ -107,7 +107,7 @@ function get_story_profile($email, $profile)
     return $story["profile{$profile}"];
 }
 
-function get_available_saveID($email)
+function get_available_saveID($email, $whichProfile)
 {
     $whichProfile = $_POST['whichProfile'];
     $profile = get_story_profile($email, $whichProfile);

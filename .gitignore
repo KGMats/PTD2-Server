@@ -479,3 +479,7 @@ composer.lock
 accounts.json
 *.sql
 .env
+
+##### PHPUnit
+.phpunit.cache/
+reports/

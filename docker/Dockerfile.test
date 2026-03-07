@@ -1,0 +1,24 @@
+# docker/Dockerfile.test
+# A lightweight test runner image. Separate from the production PHP image.
+# Usage: docker build -f docker/Dockerfile.test -t ptd2-test . && docker run --rm ptd2-test
+
+FROM php:8.2-cli-alpine
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# System deps (mysqli not needed for unit tests but good for integration)
+RUN docker-php-ext-install mysqli
+
+WORKDIR /app
+
+# Copy project files
+COPY composer.json composer.lock* ./
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Copy application and tests
+COPY app/ app/
+COPY tests/ tests/
+COPY phpunit.xml ./
+
+CMD ["vendor/bin/phpunit", "--colors=always"]
