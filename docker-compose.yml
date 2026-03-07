@@ -1,11 +1,9 @@
 services:
 
   php:
-    volumes:
-      - app:/var/www
     build:
       context: .
-      dockerfile: docker/php/dockerfile
+      dockerfile: docker/php/Dockerfile
     depends_on:
       - db
     environment:
@@ -21,11 +19,11 @@ services:
       - ptd_network
 
   nginx:
-    build: ./docker/nginx
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
     ports:
       - "80:80"
-    volumes:
-      - app:/var/www:ro
     depends_on:
       - php
     networks:
@@ -46,7 +44,6 @@ services:
 
 
 volumes:
-  app:
   dbdata:
 
 networks:

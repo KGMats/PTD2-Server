@@ -27,7 +27,7 @@ An open-source server for the Flash game Pokémon Tower Defense 2, made by rever
 docker compose up -d --build
 ```
 
-The server should now be available at http://localhost:8000 (or whatever `APP_PORT` you set).
+The server should now be available at http://localhost:80 (or whatever `APP_PORT` you set).
 
 
 ### Configuring Environment Variables

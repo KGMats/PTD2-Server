@@ -1,6 +1,4 @@
 FROM php:8.2-fpm-trixie
 
-WORKDIR /var/www
-
 RUN docker-php-ext-install mysqli 
-COPY app /var/www
+COPY app/ /var/www/
