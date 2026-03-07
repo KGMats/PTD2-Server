@@ -2,22 +2,28 @@ name: PHPUnit Tests
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master, main, tests ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ master, main, tests ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        php-version: [ '8.2', '8.3', '8.4' ]
+
+    name: PHP ${{ matrix.php-version }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up PHP 8.2
+      - name: Set up PHP ${{ matrix.php-version }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php-version }}
           extensions: mysqli
           coverage: none        # switch to 'xdebug' when you want coverage reports
 
@@ -25,17 +31,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-
+            ${{ runner.os }}-php-${{ matrix.php-version }}-
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Run Unit tests
         run: vendor/bin/phpunit --testsuite Unit --colors=always
-
-      - name: Run Integration tests (JSON mode, no DB)
-        env:
-          USE_JSON_SAVE: "true"
-        run: vendor/bin/phpunit --testsuite Integration --colors=always

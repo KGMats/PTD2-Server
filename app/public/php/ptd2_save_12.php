@@ -86,7 +86,7 @@ function load_story_profile($email, $pass): string
 {
     $result = '';
     $whichProfile = $_POST['whichProfile'];
-    $profile = get_story_profile($email, $whichProfile);
+    $profile = get_story_profile($email, $pass, $whichProfile);
     if ($profile)
     {
         $encoded_data = encode_story_profile($profile);
@@ -153,7 +153,8 @@ function save_story($email, $pass): string
 
     $whichProfile = $_POST['whichProfile'];
 
-    $pokes = decode_pokeinfo($_POST['extra3'], $email, $whichProfile);
+    $firstAvailableSaveID = get_available_saveID($email, $pass, $whichProfile);
+    $pokes = decode_pokeinfo($_POST['extra3'], $firstAvailableSaveID);
     foreach ($pokes as $key => $poke)
     {
         if (isset($poke['needNickname']))
@@ -199,7 +200,7 @@ function delete_story(string $email, string $pass): string
 
 function load_1v1($email, $pass)
 {
-    $profiles = get_1v1($email);
+    $profiles = get_1v1($email, $pass);
     if (isset($profiles))
     {
         $encoded_data = encode_1v1($profiles);

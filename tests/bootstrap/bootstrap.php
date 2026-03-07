@@ -41,16 +41,6 @@ define('DB_NAME', '');
 // MySQL.php is intentionally NOT required — it would try to connect.
 require_once ROOT_DIR . '/json.php';
 
-// -- Stub: get_available_saveID ------------------------------------------------
-// json.php's get_available_saveID() reads $_POST['whichProfile'] directly.
-// Once you refactor it to accept $whichProfile as a parameter, delete this stub.
-// Until then, this stub provides a deterministic starting saveID for tests.
-if (!function_exists('get_available_saveID')) {
-    function get_available_saveID(string $email): int
-    {
-        return 1;
-    }
-}
 
 // -- Load the codec ------------------------------------------------------------
 require_once ROOT_DIR . '/obfuscation.php';

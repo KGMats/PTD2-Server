@@ -89,10 +89,10 @@ function create_new_account($account)
     file_put_contents(JSON_ACCOUNTS_FILE, $data);
 }
 
-function get_1v1($email)
+function get_1v1(string $email, string $pass): array
 {
-    $account = get_account($email, $_POST['Pass']);
-    return $account['1v1'];
+    $account = get_account($email, $pass);
+    return $account['1v1'] ?? [];
 }
 
 function get_story($email, $pass)
@@ -101,16 +101,15 @@ function get_story($email, $pass)
     return $account['story'];
 }
 
-function get_story_profile($email, $profile)
+function get_story_profile($email, $pass, $profile)
 {
-    $story = get_story($email, $_POST['Pass']);
+    $story = get_story($email, $pass);
     return $story["profile{$profile}"];
 }
 
-function get_available_saveID($email, $whichProfile)
+function get_available_saveID(string $email, string $pass, int $whichProfile): int
 {
-    $whichProfile = $_POST['whichProfile'];
-    $profile = get_story_profile($email, $whichProfile);
+    $profile = get_story_profile($email, $pass, $whichProfile);
     if (isset($profile['poke']))
     {
         return count($profile['poke']) + 1;
@@ -118,9 +117,9 @@ function get_available_saveID($email, $whichProfile)
     return 1;
 }
 
-function get_gym($email)
+function get_gym(string $email, string $pass): int
 {
-    $account = get_account($email, $_POST['Pass']);
+    $account = get_account($email, $pass);
     if (isset($account['gym_challenges']))
     {
         return $account['gym_challenges'];
@@ -131,7 +130,7 @@ function get_gym($email)
 function get_trainerVS($email, $pass)
 {
     $account = get_account($email, $pass);
-    return $account['trainerVS'];
+    return $account['trainerVS'] ?? null;
 }
 
 function get_trainerVS_opponent()

@@ -212,7 +212,7 @@ function get_story($email, $pass)
     return null;
 }
 
-function get_story_profile($email, $whichProfile)
+function get_story_profile($email, $pass, $whichProfile)
 {
     global $mysqli;
     $profile_stmt = $mysqli->prepare('SELECT Gender, MapLoc, MapSpot, CurrentSave, CurrentTime FROM story WHERE email=? && num=?');
@@ -534,7 +534,7 @@ function update_account_data($email, $pass, $new_data)
     return true;
 }
 
-function get_1v1($email)
+function get_1v1(string $email, string $pass): array
 {
     global $mysqli;
     $profiles = array();
@@ -553,7 +553,7 @@ function get_1v1($email)
     return $profiles;
 }
 
-function get_available_saveID($email, $whichProfile): int {
+function get_available_saveID(string $email, string $pass, int $whichProfile): int {
     global $mysqli;
     $db_name = DB_NAME;
     $stmt = $mysqli->prepare('SELECT AUTO_INCREMENT FROM information_schema.tables WHERE table_name="pokes" AND table_schema=?');
@@ -602,7 +602,7 @@ function delete_profile($email, $pass, $gamemode, $profile)
     return true;
 }
 
-function get_gym($email)
+function get_gym(string $email, string $pass): int
 {
     global $mysqli;
     $profiles = array();

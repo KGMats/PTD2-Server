@@ -100,10 +100,10 @@ function create_Check_Sum(string $encoded_info)
     return $checksum * 3;
 }
 
-function decode_pokeinfo(string $encoded_pokeinfo, $email, $whichProfile): array
+function decode_pokeinfo(string $encoded_pokeinfo, int $firstAvailableSaveID): array
 {
     $pokemons = array();
-    $AvaliableSaveID = get_available_saveID($email, $whichProfile);
+    $AvaliableSaveID = $firstAvailableSaveID;
     $pointer = 0;
     $data_len_len = convertStringToInt($encoded_pokeinfo[$pointer++]);
     $pointer += $data_len_len;
