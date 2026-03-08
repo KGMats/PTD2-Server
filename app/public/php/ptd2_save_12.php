@@ -86,7 +86,7 @@ function load_story_profile($email, $pass): string
 {
     $result = '';
     $whichProfile = $_POST['whichProfile'];
-    $profile = get_story_profile($email, $whichProfile);
+    $profile = get_story_profile($email, $pass, $whichProfile);
     if ($profile)
     {
         $encoded_data = encode_story_profile($profile);
@@ -150,7 +150,11 @@ function save_story($email, $pass): string
         }
     }
 
-    $pokes = decode_pokeinfo($_POST['extra3'], $email);
+
+    $whichProfile = $_POST['whichProfile'];
+
+    $firstAvailableSaveID = get_available_saveID($email, $pass, $whichProfile);
+    $pokes = decode_pokeinfo($_POST['extra3'], $firstAvailableSaveID);
     foreach ($pokes as $key => $poke)
     {
         if (isset($poke['needNickname']))
@@ -175,9 +179,9 @@ function save_story($email, $pass): string
     $items = decode_inventory($_POST['extra4']);
     $extra = decode_extra($_POST['extra2']);
 
-    $new_data['story']["profile{$_POST["whichProfile"]}"]['poke'] = $pokes;
-    $new_data['story']["profile{$_POST["whichProfile"]}"]['extra'] = $extra;
-    $new_data['story']["profile{$_POST["whichProfile"]}"]['items'] = $items;
+    $new_data['story']["profile${whichProfile}"]['poke'] = $pokes;
+    $new_data['story']["profile${whichProfile}"]['extra'] = $extra;
+    $new_data['story']["profile${whichProfile}"]['items'] = $items;
     if (update_account_data($email, $pass, $new_data))
     {
         return 'Result=Success';
@@ -196,7 +200,7 @@ function delete_story(string $email, string $pass): string
 
 function load_1v1($email, $pass)
 {
-    $profiles = get_1v1($email);
+    $profiles = get_1v1($email, $pass);
     if (isset($profiles))
     {
         $encoded_data = encode_1v1($profiles);

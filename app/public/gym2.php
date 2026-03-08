@@ -31,7 +31,7 @@ else
 
 function loadGym($email, $pass)
 {
-    $gym_beaten = get_gym($email);
+    $gym_beaten = get_gym($email, $pass);
     $encoded_data = encode_gym($gym_beaten);
     return "Result=Success&extra=$encoded_data";
 }
@@ -81,7 +81,7 @@ function saveTrainerVS($email, $pass)
     $nickname = $_POST['nickname'];
 
 
-    $new_data['trainerVS']['poke'] = decode_trainervs_pokeinfo($encoded_pkm, $email);
+    $new_data['trainerVS']['poke'] = decode_trainervs_pokeinfo($encoded_pkm);
     $new_data['trainerVS']['Nickname'] = $nickname;
     $new_data['trainerVS']['avatar'] = $misc['avatar'];
     $new_data['trainerVS']['wins'] = $misc['wins'];
